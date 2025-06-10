@@ -1,11 +1,39 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #111827;
+    --color-secondary: #3D578D;
+    --color-tertiary: #FFF;
+    --color-goldLight: #BB9B49;
+    --color-goldDark: #554621;
+    --color-softWhite: #D3CACA;
+    --color-softBlueCards: #526B9F;
+    --color-line: #D9D9D9;
+    --font-inter: 'Inter', sans-serif;
+    --font-Abhaya: 'Abhaya Libre', serif;
+
+}
 
 .page {
-    background-image: url('./assets/background.png');
+    background-image: url('/assets/background.png');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
     min-height: 100vh;
+}
+
+.perspective {
+    perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+    transform: rotateY(180deg);
 }
