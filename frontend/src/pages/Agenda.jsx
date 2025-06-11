@@ -8,20 +8,15 @@ function Agenda() {
 
   return (
     <section className="pt-[57px]">
-      {/* Título */}
       <h1 className="text-[60px] font-Abhaya text-[#7C7C70] text-center">
         Agenda tu Consulta
       </h1>
-
-      {/* Primer contenedor */}
       <div className="w-[984px] relative mt-[42px] mb-[40px] mx-[228px]">
         <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
         <div className="relative z-10 p-[40px]">
           <h3 className="text-[30px] font-Abhaya text-[#9E874D] mb-[27px]">
             Selecciona tu Servicio
           </h3>
-
-          {/* Tarjetas de servicio */}
           <div className="flex justify-center gap-[15px] mb-[30px]">
             {[
               {
@@ -57,10 +52,7 @@ function Agenda() {
               </button>
             ))}
           </div>
-
-          {/* Fecha y Hora */}
           <div className="flex justify-between items-start gap-[20px]">
-            {/* Fecha */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FaCalendarAlt className="text-[#9E874D]" />
@@ -78,8 +70,6 @@ function Agenda() {
                 <FaCalendarAlt className="absolute right-3 top-[50%] -translate-y-1/2 text-[#9E874D] pointer-events-none" />
               </div>
             </div>
-
-            {/* Hora */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FaClock className="text-[#9E874D]" />
@@ -113,8 +103,6 @@ function Agenda() {
           </div>
         </div>
       </div>
-
-      {/* Resumen de cita seleccionada */}
       {selectedService && selectedDate && selectedHour && (
         <div className="w-[984px] bg-[#F7F5EB] border border-goldLight rounded-md p-[30px] mx-[228px] mb-[40px]">
           <h3 className="text-[24px] font-Abhaya text-[#9E874D] mb-2">
@@ -131,8 +119,6 @@ function Agenda() {
           </p>
         </div>
       )}
-
-      {/* Segundo contenedor: formulario de pago */}
       <div className="w-[984px] relative mb-[90px] mx-[228px]">
         <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
         <div className="relative z-10 p-[30px]">
