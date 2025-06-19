@@ -1,7 +1,16 @@
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock } from "react-icons/fa";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 function Contacto() {
+  const [showPopup, setShowPopup] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setShowPopup(true);
+
+    setTimeout(() => setShowPopup(false), 3000);
+  };
   return (
     <>
       <section className="relative w-full">
@@ -31,37 +40,54 @@ function Contacto() {
               <h3 className="text-[30px] font-Abhaya text-[#9E874D] mb-[27px]">
                 Envíame un mensaje
               </h3>
+              <form onSubmit={handleSubmit}>
+                <div className="mb-[20px]">
+                  <label className="text-[15px] font-inter text-[#7C7C70]">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    className="block w-full h-[30px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
+                    required
+                  />
+                </div>
 
-              <div className="mb-[20px]">
-                <label className="text-[15px] font-inter text-[#7C7C70]">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  className="block w-full h-[30px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
-                />
-              </div>
+                <div className="mb-[20px]">
+                  <label className="text-[15px] font-inter text-[#7C7C70]">
+                    Correo electrónico
+                  </label>
+                  <input
+                    type="email"
+                    className="block w-full h-[30px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
+                    required
+                  />
+                </div>
 
-              <div className="mb-[20px]">
-                <label className="text-[15px] font-inter text-[#7C7C70]">
-                  Correo electrónico
-                </label>
-                <input
-                  type="email"
-                  className="block w-full h-[30px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
-                />
-              </div>
+                <div className="mb-4">
+                  <label className="text-[15px] font-inter text-[#7C7C70]">
+                    Mensaje
+                  </label>
+                  <textarea
+                    className="block w-[550px] h-[130px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-goldLight"
+                    required
+                  ></textarea>
+                </div>
 
-              <div className="mb-4">
-                <label className="text-[15px] font-inter text-[#7C7C70]">
-                  Mensaje
-                </label>
-                <textarea className="block w-[550px] h-[130px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-goldLight"></textarea>
-              </div>
-
-              <button className="w-[550px] h-[42px] cursor-pointer bg-[#9E874D] text-tertiary font-inter text-[20px] rounded-md">
-                Enviar Mensaje
-              </button>
+                <button
+                  type="submit"
+                  className="w-[550px] h-[42px] cursor-pointer bg-[#9E874D] text-tertiary font-inter text-[20px] rounded-md"
+                >
+                  Enviar Mensaje
+                </button>
+              </form>
+              {showPopup && (
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md bg-white border border-goldLight text-center rounded-lg shadow-lg p-4 animate-fade-in-out z-20">
+                  <p className="text-[18px] font-inter text-[#7C7C70]">
+                    ¡Gracias por tu mensaje! Pronto te contactaremos por correo
+                    electrónico.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-6 mt-[74px] mb-[106px]">

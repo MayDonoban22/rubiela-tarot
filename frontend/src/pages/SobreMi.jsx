@@ -23,9 +23,9 @@ function SobreMi() {
           </div>
         </div>
       </section>
-      <section className="flex flex-col items-center justify-center px-4 pt-20">
-        <h2 className="text-[60px] font-Abhaya text-[#7C7C70] mb-10 text-center">
-          Conóceme
+      <section className="flex flex-col items-center justify-center px-4 pt-10">
+        <h2 className="mb-6 text-center text-[30px] font-medium text-[var(--color-goldLight)] animate-pulse">
+          Haz clic en la carta y descubre quién soy 🌟
         </h2>
 
         <div
@@ -68,9 +68,6 @@ function SobreMi() {
             </div>
           </div>
         </div>
-        <p className="mt-6 text-center text-[30px] font-medium text-[var(--color-goldLight)] animate-pulse">
-          Haz clic en la carta y descubre quién soy 🌟
-        </p>
       </section>
 
       <section className="mt-20 h-[642px] relative text-center overflow-hidden">

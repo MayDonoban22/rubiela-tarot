@@ -16,11 +16,11 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/consultas" element={<Consultas />} />
+          {/* <Route path="/consultas" element={<Consultas />} />
           <Route path="/sobre-mi" element={<SobreMi />} />
           <Route path="/contacto" element={<Contacto />} />
-          <Route path="/agenda" element={<Agenda />} />
-          {/*<Route path="/login" element={<Login />} />
+          <Route path="/agenda" element={<Agenda />} /> */}
+          {/* <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} /> */}
         </Routes>
         <Footer />
