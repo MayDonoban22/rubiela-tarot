@@ -14,20 +14,24 @@ function Home() {
         <img
           src="/assets/images/Frame-first-page.png"
           alt="Banner"
-          className="w-full max-h-[900px] object-cover object-center"
+          className="w-full max-h-[900px] object-cover object-center absolute h-full"
         />
-
-        <div className="absolute inset-0 flex flex-col lg:flex-row items-center justify-between px-4 sm:px-6 md:px-10 lg:px-[65px] py-[44px] gap-6 md:gap-8 lg:gap-10 z-10">
-          <div className="w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[298px] lg:h-[298px] overflow-hidden rounded-full border-4 border-[var(--color-goldLight)]">
+        <div className="relative inset-0 flex flex-col lg:flex-row items-center justify-between px-4 sm:px-6 md:px-10 lg:px-[65px] py-[44px] gap-6 md:gap-8 lg:gap-10 z-10">
+          <div className="w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[298px] lg:h-[298px] overflow-hidden rounded-full">
             <img
               src="/assets/images/profile-avatar.png"
               alt="Rubiela Pineda"
               className="w-full h-full object-cover rounded-full"
             />
           </div>
-
-          <div className="flex flex-col items-center lg:items-end justify-center text-tertiary text-center lg:text-right max-w-[600px] gap-1 md:gap-1.5 lg:gap-2 px-2 pr-0 lg:pr-[171px]">
-            <h1 className="text-[32px] md:text-[48px] lg:text-[70px] font-Abhaya text-[var(--color-goldLight)] uppercase leading-tight">
+          <div
+            className="flex flex-col items-center justify-center text-tertiary text-center max-w-[600px] gap-1 md:gap-1.5 lg:gap-2 px-2 pr-0 
+          lg:pr-[171px] text-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+          >
+            <h1
+              className="text-[32px] md:text-[48px] lg:text-[70px] font-Abhaya text-[var(--color-goldLight)] uppercase leading-tight
+            "
+            >
               LUZ DE RUBÍ
             </h1>
             <h2 className="text-[20px] md:text-[26px] lg:text-[32px] font-Abhaya text-[var(--color-goldLight)] leading-tight">
@@ -43,7 +47,7 @@ function Home() {
               Atracción al dinero • Trabajo • Amor • Suerte • Salud
             </p>
 
-            <div className="mt-4 md:mt-5 w-full flex justify-center lg:justify-end">
+            <div className="mt-4 md:mt-5 w-full flex justify-center">
               <Link to="/agenda">
                 <button className="px-6 py-2 rounded-md text-tertiary text-[14px] md:text-[16px] lg:text-[18px] font-semibold bg-gradient-to-r from-[var(--color-goldLight)] to-[var(--color-goldDark)] hover:shadow-lg transition cursor-pointer w-full md:w-auto">
                   Agendar Consulta

@@ -10,8 +10,11 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-gradient-to-l from-secondary to-primary text-tertiary font-inter text-[18px] border border-[var(--color-goldLight)] relative z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <nav className="text-tertiary font-inter text-[18px] border border-[var(--color-goldLight)] relative z-50">
+      <div
+        className="mx-auto px-4 py-3 flex items-center justify-between relative z-10
+      bg-gradient-to-l from-secondary to-primary"
+      >
         <Link to="/" className="text-tertiary text-xl font-light">
           <img
             src="/assets/images/logo-oficial.png"
@@ -50,7 +53,10 @@ function Navbar() {
         </button>
       </div>
       {isOpen && (
-        <div className="md:hidden bg-primary text-tertiary flex flex-col items-center gap-4 py-6 animate-slide-down shadow-lg">
+        <div
+          className="md:hidden bg-primary/50 backdrop-blur-md text-tertiary flex flex-col items-center gap-4 py-6 
+        animate-slide-down shadow-lg fixed top-9 w-full z-0 pt-[100px] h-full"
+        >
           <Link to="/" onClick={toggleMenu} className="hover:underline">
             Inicio
           </Link>

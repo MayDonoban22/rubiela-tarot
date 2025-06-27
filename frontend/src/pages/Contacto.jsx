@@ -8,81 +8,87 @@ function Contacto() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setShowPopup(true);
-
     setTimeout(() => setShowPopup(false), 3000);
   };
+
   return (
     <>
       <section className="relative w-full">
         <img
           src="/assets/images/Frame-second-page.png"
           alt="Banner"
-          className="w-full h-auto object-cover"
+          className="w-full object-cover object-center absolute h-full"
         />
-        <div className="absolute inset-0 flex flex-col justify-between items-center text-tertiary">
-          <div className="mt-[76px] px-[310px] text-center">
-            <h1 className="text-[60px] font-Abhaya text-[var(--color-goldLight)] leading-tight">
+        <div
+          className="relative inset-0 flex flex-col justify-center items-center text-tertiary
+                        px-4 sm:px-6 md:px-10 lg:px-[65px] py-[44px]
+                        gap-6 md:gap-8 lg:gap-10 z-10
+                        text-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+        >
+          <div className="text-center max-w-[800px] px-2 mx-auto">
+            <h1
+              className="text-[32px] md:text-[48px] lg:text-[60px]
+                           font-Abhaya text-[var(--color-goldLight)] leading-tight"
+            >
               Contacto
             </h1>
-          </div>
-          <div className="mb-[71px] px-[350px] text-center">
-            <p className="text-[24px] font-Abhaya">
+            <p
+              className="text-[15px] md:text-[18px] lg:text-[22px]
+                           font-Abhaya leading-tight mt-4"
+            >
               Estoy aquí para guiarte en tu camino espiritual.
             </p>
           </div>
         </div>
       </section>
-      <section className="flex flex-col items-center px-[45px]">
-        <div className="flex gap-10">
-          <div className="w-[610px] h-[640px] relative mt-[74px] mb-[106px]">
+      <section className="flex flex-col items-center px-4 sm:px-6 md:px-10 lg:px-[45px]">
+        <div className="flex flex-col lg:flex-row gap-10 w-full max-w-[1200px] mt-[74px] mb-[106px]">
+          <div className="flex-1 relative">
             <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
-            <div className="relative z-10 p-[30px]">
-              <h3 className="text-[30px] font-Abhaya text-[#9E874D] mb-[27px]">
+            <div className="relative z-10 p-6 sm:p-8">
+              <h3 className="text-[24px] md:text-[28px] font-Abhaya text-[#9E874D] mb-6">
                 Envíame un mensaje
               </h3>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-[20px]">
-                  <label className="text-[15px] font-inter text-[#7C7C70]">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="text-[14px] md:text-[15px] font-inter text-[#7C7C70]">
                     Nombre
                   </label>
                   <input
                     type="text"
-                    className="block w-full h-[30px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
                     required
+                    className="block w-full h-[35px] bg-tertiary border border-goldLight rounded-md mt-1 px-3 focus:outline-none focus:ring-2 focus:ring-goldLight"
                   />
                 </div>
-
-                <div className="mb-[20px]">
-                  <label className="text-[15px] font-inter text-[#7C7C70]">
+                <div>
+                  <label className="text-[14px] md:text-[15px] font-inter text-[#7C7C70]">
                     Correo electrónico
                   </label>
                   <input
                     type="email"
-                    className="block w-full h-[30px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
                     required
+                    className="block w-full h-[35px] bg-tertiary border border-goldLight rounded-md mt-1 px-3 focus:outline-none focus:ring-2 focus:ring-goldLight"
                   />
                 </div>
-
-                <div className="mb-4">
-                  <label className="text-[15px] font-inter text-[#7C7C70]">
+                <div>
+                  <label className="text-[14px] md:text-[15px] font-inter text-[#7C7C70]">
                     Mensaje
                   </label>
                   <textarea
-                    className="block w-[550px] h-[130px] bg-tertiary border border-goldLight rounded-md mt-[7px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-goldLight"
                     required
-                  ></textarea>
+                    className="block w-full h-[120px] sm:h-[130px] bg-tertiary border border-goldLight rounded-md mt-1 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
+                  />
                 </div>
-
                 <button
                   type="submit"
-                  className="w-[550px] h-[42px] cursor-pointer bg-[#9E874D] text-tertiary font-inter text-[20px] rounded-md"
+                  className="w-full h-[42px] bg-[#9E874D] text-tertiary font-inter text-[16px] rounded-md hover:opacity-90 transition cursor-pointer"
                 >
                   Enviar Mensaje
                 </button>
               </form>
               {showPopup && (
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md bg-white border border-goldLight text-center rounded-lg shadow-lg p-4 animate-fade-in-out z-20">
-                  <p className="text-[18px] font-inter text-[#7C7C70]">
+                  <p className="text-[16px] font-inter text-[#7C7C70]">
                     ¡Gracias por tu mensaje! Pronto te contactaremos por correo
                     electrónico.
                   </p>
@@ -90,67 +96,62 @@ function Contacto() {
               )}
             </div>
           </div>
-          <div className="flex flex-col gap-6 mt-[74px] mb-[106px]">
-            <div className="w-[610px] h-[411px] relative">
+          <div className="flex-1 flex flex-col gap-6">
+            <div className="relative h-[auto]">
               <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
-              <div className="relative z-10 p-[30px]">
-                <h3 className="text-[30px] font-Abhaya text-[#9E874D] mb-[20px]">
+              <div className="relative z-10 p-6 sm:p-8">
+                <h3 className="text-[24px] md:text-[28px] font-Abhaya text-[#9E874D] mb-4">
                   Información de contacto
                 </h3>
-
-                <div className="flex items-center gap-3 mb-1">
-                  <FaEnvelope className="text-[#9E874D]" />
-                  <h4 className="text-[22px] font-Abhaya text-[#9E874D]">
-                    Email
-                  </h4>
-                </div>
-                <p className="text-[17px] font-inter text-[#7C7C70] mb-4">
-                  rubiela@luzderubi.com
-                </p>
-
-                <div className="flex items-center gap-3 mb-1">
-                  <FaPhone className="text-[#9E874D]" />
-                  <h4 className="text-[22px] font-Abhaya text-[#9E874D]">
-                    Teléfono
-                  </h4>
-                </div>
-                <p className="text-[17px] font-inter text-[#7C7C70] mb-4">
-                  +57 (123) 456-7890
-                </p>
-
-                <div className="flex items-center gap-3 mb-1">
-                  <FaMapMarkerAlt className="text-[#9E874D]" />
-                  <h4 className="text-[22px] font-Abhaya text-[#9E874D]">
-                    Ubicación
-                  </h4>
-                </div>
-                <p className="text-[17px] font-inter text-[#7C7C70] mb-4">
-                  Bogotá, Colombia
-                </p>
-
-                <div className="flex items-center gap-3 mb-1">
-                  <FaClock className="text-[#9E874D]" />
-                  <h4 className="text-[22px] font-Abhaya text-[#9E874D]">
-                    Horario de atención
-                  </h4>
-                </div>
-                <p className="text-[17px] font-inter text-[#7C7C70]">
-                  Lunes a Sábado: 9:00 AM - 6:00 PM
-                </p>
+                {[
+                  {
+                    icon: FaEnvelope,
+                    label: "Email",
+                    value: "rubiela@luzderubi.com",
+                  },
+                  {
+                    icon: FaPhone,
+                    label: "Teléfono",
+                    value: "+57 (123) 456-7890",
+                  },
+                  {
+                    icon: FaMapMarkerAlt,
+                    label: "Ubicación",
+                    value: "Bogotá, Colombia",
+                  },
+                  {
+                    icon: FaClock,
+                    label: "Horario de atención",
+                    value: "Lunes a Sábado: 9:00 AM - 6:00 PM",
+                  },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3 mb-3">
+                    <item.icon className="text-[#9E874D] text-[18px]" />
+                    <div>
+                      <h4 className="text-[18px] md:text-[20px] font-Abhaya text-[#9E874D]">
+                        {item.label}
+                      </h4>
+                      <p className="text-[14px] md:text-[16px] font-inter text-[#7C7C70]">
+                        {item.value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="w-[610px] h-[206px] relative">
+
+            <div className="relative h-[auto]">
               <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
-              <div className="relative z-10 p-[30px]">
-                <h3 className="text-[30px] font-Abhaya text-[#9E874D] mb-4">
+              <div className="relative z-10 p-6 sm:p-8">
+                <h3 className="text-[24px] md:text-[28px] font-Abhaya text-[#9E874D] mb-4">
                   Consultas personalizadas
                 </h3>
-                <p className="text-[17px] font-inter text-[#7C7C70] mb-4">
+                <p className="text-[14px] md:text-[16px] font-inter text-[#7C7C70] mb-6">
                   Para una experiencia más personalizada, agenda una consulta
                   directamente a través de nuestro sistema de reservas.
                 </p>
                 <Link to="/agenda">
-                  <button className="w-[170px] h-[35px] cursor-pointer bg-goldLight text-tertiary font-inter text-[17px] rounded-md">
+                  <button className="w-full md:w-[170px] h-[35px] bg-goldLight text-tertiary font-inter text-[16px] rounded-md hover:opacity-90 cursor-pointer transition">
                     Agendar consulta
                   </button>
                 </Link>
