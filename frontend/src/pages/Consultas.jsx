@@ -1,7 +1,20 @@
 import { FaMoon, FaHashtag, FaStar } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import AppContext from "../contexts/AppContext";
 
 function Consultas() {
+  const { isLoggedIn } = useContext(AppContext);
+  const navigate = useNavigate();
+
+  const handleAgendaClick = () => {
+    if (isLoggedIn) {
+      navigate("/agenda");
+    } else {
+      navigate("/login", { state: { from: { pathname: "/agenda" } } });
+    }
+  };
+
   return (
     <div className="w-full">
       <section className="relative w-full">
@@ -83,12 +96,12 @@ function Consultas() {
         </div>
 
         <div className="mt-16">
-          <Link
-            to="/agenda"
-            className="text-[20px] md:text-[24px] lg:text-[30px] font-inter text-[#7C7C70] hover:text-primary transition"
+          <button
+            onClick={handleAgendaClick}
+            className="text-[20px] md:text-[24px] lg:text-[30px] font-inter text-[#7C7C70] cursor-pointer hover:text-primary transition underline"
           >
             Selecciona un servicio para continuar con tu reserva
-          </Link>
+          </button>
         </div>
       </section>
     </div>

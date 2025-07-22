@@ -1,20 +1,27 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FaBars, FaTimes } from "react-icons/fa";
+import AppContext from "../../contexts/AppContext";
+import { removeToken } from "../../utils/token";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isLoggedIn, setIsLoggedIn } = useContext(AppContext);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
+  const handleLogout = () => {
+    removeToken();
+    setIsLoggedIn(false);
+    navigate("/");
+  };
+
   return (
-    <nav className="text-tertiary font-inter text-[18px] border border-[var(--color-goldLight)] relative z-50">
-      <div
-        className="mx-auto px-4 py-3 flex items-center justify-between relative z-10
-      bg-gradient-to-l from-secondary to-primary"
-      >
+    <nav className="text-tertiary font-inter text-[18px] border border-[var(--color-goldLight)] relative z-20">
+      <div className="mx-auto px-4 py-3 flex items-center justify-between relative z-10 bg-gradient-to-l from-secondary to-primary">
         <Link to="/" className="text-tertiary text-xl font-light">
           <img
             src="/assets/images/logo-oficial.png"
@@ -38,12 +45,22 @@ function Navbar() {
           <Link to="/contacto" className="hover:underline text-sm lg:text-base">
             Contacto
           </Link>
-          <Link
-            to="/login"
-            className="bg-tertiary text-[#7b6222f0] px-4 py-2 rounded-md font-semibold hover:shadow-md transition text-sm lg:text-base"
-          >
-            Iniciar sesión
-          </Link>
+
+          {!isLoggedIn ? (
+            <Link
+              to="/login"
+              className="bg-tertiary text-[#7b6222f0] px-4 py-2 rounded-md font-semibold hover:shadow-md transition text-sm lg:text-base"
+            >
+              Iniciar sesión
+            </Link>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="bg-tertiary text-[#7b6222f0] cursor-pointer px-4 py-2 rounded-md font-semibold hover:shadow-md transition text-sm lg:text-base"
+            >
+              Cerrar sesión
+            </button>
+          )}
         </div>
         <button
           className="md:hidden text-[var(--color-goldLight)] focus:outline-none cursor-pointer"
@@ -53,10 +70,7 @@ function Navbar() {
         </button>
       </div>
       {isOpen && (
-        <div
-          className="md:hidden bg-primary/50 backdrop-blur-md text-tertiary flex flex-col items-center gap-4 py-6 
-        animate-slide-down shadow-lg fixed top-9 w-full z-0 pt-[100px] h-full"
-        >
+        <div className="md:hidden bg-primary/50 backdrop-blur-md text-tertiary flex flex-col items-center gap-4 py-6 animate-slide-down shadow-lg fixed top-0 w-full z-0 pt-[136px] h-full">
           <Link to="/" onClick={toggleMenu} className="hover:underline">
             Inicio
           </Link>
@@ -73,13 +87,26 @@ function Navbar() {
           <Link to="/contacto" onClick={toggleMenu} className="hover:underline">
             Contacto
           </Link>
-          <Link
-            to="/login"
-            onClick={toggleMenu}
-            className="bg-tertiary text-[#7b6222f0] px-4 py-2 rounded-md font-semibold hover:shadow-md transition"
-          >
-            Iniciar sesión
-          </Link>
+
+          {!isLoggedIn ? (
+            <Link
+              to="/login"
+              onClick={toggleMenu}
+              className="bg-tertiary text-[#7b6222f0] px-4 py-2 rounded-md font-semibold hover:shadow-md transition"
+            >
+              Iniciar sesión
+            </Link>
+          ) : (
+            <button
+              onClick={() => {
+                handleLogout();
+                toggleMenu();
+              }}
+              className="bg-tertiary text-[#7b6222f0] px-4 py-2 rounded-md font-semibold hover:shadow-md transition"
+            >
+              Cerrar sesión
+            </button>
+          )}
         </div>
       )}
     </nav>

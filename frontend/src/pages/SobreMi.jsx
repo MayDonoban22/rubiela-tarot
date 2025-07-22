@@ -38,7 +38,6 @@ function SobreMi() {
               flipped ? "rotate-y-180" : ""
             }`}
           >
-            {/* Front */}
             <div className="absolute w-full h-full backface-hidden rounded-xl shadow-xl">
               <img
                 src="/assets/images/card-la-emperatriz.png"
@@ -46,7 +45,7 @@ function SobreMi() {
                 className="w-full h-full object-cover rounded-xl"
               />
             </div>
-            {/* Back */}
+
             <div className="absolute w-full h-full backface-hidden rotate-y-180 rounded-xl bg-gradient-to-b from-primary to-secondary p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto shadow-xl">
               <h2 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[32px] font-Abhaya text-goldLight text-center mb-4">
                 Rubiela Pineda Cortés

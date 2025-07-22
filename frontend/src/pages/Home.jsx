@@ -1,4 +1,7 @@
-import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import AppContext from "../contexts/AppContext";
+import SidebarHoroscopo from "../components/SidebarHoroscopo";
 import {
   FaHeart,
   FaAmbulance,
@@ -8,8 +11,20 @@ import {
 } from "react-icons/fa";
 
 function Home() {
+  const { isLoggedIn } = useContext(AppContext);
+  const navigate = useNavigate();
+
+  const handleAgendaClick = () => {
+    if (isLoggedIn) {
+      navigate("/agenda");
+    } else {
+      navigate("/login", { state: { from: { pathname: "/agenda" } } });
+    }
+  };
+
   return (
     <div className="w-full">
+      <SidebarHoroscopo />
       <section className="relative w-full">
         <img
           src="/assets/images/Frame-first-page.png"
@@ -24,14 +39,8 @@ function Home() {
               className="w-full h-full object-cover rounded-full"
             />
           </div>
-          <div
-            className="flex flex-col items-center justify-center text-tertiary text-center max-w-[600px] gap-1 md:gap-1.5 lg:gap-2 px-2 pr-0 
-          lg:pr-[171px] text-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
-          >
-            <h1
-              className="text-[32px] md:text-[48px] lg:text-[70px] font-Abhaya text-[var(--color-goldLight)] uppercase leading-tight
-            "
-            >
+          <div className="flex flex-col items-center justify-center text-tertiary text-center max-w-[600px] gap-1 md:gap-1.5 lg:gap-2 px-2 pr-0 lg:pr-[171px] text-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+            <h1 className="text-[32px] md:text-[48px] lg:text-[70px] font-Abhaya text-[var(--color-goldLight)] uppercase leading-tight">
               LUZ DE RUBÍ
             </h1>
             <h2 className="text-[20px] md:text-[26px] lg:text-[32px] font-Abhaya text-[var(--color-goldLight)] leading-tight">
@@ -48,11 +57,12 @@ function Home() {
             </p>
 
             <div className="mt-4 md:mt-5 w-full flex justify-center">
-              <Link to="/agenda">
-                <button className="px-6 py-2 rounded-md text-tertiary text-[14px] md:text-[16px] lg:text-[18px] font-semibold bg-gradient-to-r from-[var(--color-goldLight)] to-[var(--color-goldDark)] hover:shadow-lg transition cursor-pointer w-full md:w-auto">
-                  Agendar Consulta
-                </button>
-              </Link>
+              <button
+                onClick={handleAgendaClick}
+                className="px-6 py-2 rounded-md text-tertiary text-[14px] md:text-[16px] lg:text-[18px] font-semibold bg-gradient-to-r from-[var(--color-goldLight)] to-[var(--color-goldDark)] hover:shadow-lg transition cursor-pointer w-full md:w-auto"
+              >
+                Agendar Consulta
+              </button>
             </div>
           </div>
         </div>

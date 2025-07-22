@@ -1,14 +1,38 @@
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock } from "react-icons/fa";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { contactSchema } from "../schemas";
+import AppContext from "../contexts/AppContext";
 
 function Contacto() {
   const [showPopup, setShowPopup] = useState(false);
+  const { isLoggedIn } = useContext(AppContext);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(contactSchema),
+  });
+
+  const onSubmit = (data) => {
+    console.log("Formulario enviado:", data);
     setShowPopup(true);
+    reset();
     setTimeout(() => setShowPopup(false), 3000);
+  };
+
+  const handleAgendaClick = () => {
+    if (isLoggedIn) {
+      navigate("/agenda");
+    } else {
+      navigate("/login", { state: { from: { pathname: "/agenda" } } });
+    }
   };
 
   return (
@@ -26,39 +50,39 @@ function Contacto() {
                         text-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
         >
           <div className="text-center max-w-[800px] px-2 mx-auto">
-            <h1
-              className="text-[32px] md:text-[48px] lg:text-[60px]
-                           font-Abhaya text-[var(--color-goldLight)] leading-tight"
-            >
+            <h1 className="text-[32px] md:text-[48px] lg:text-[60px] font-Abhaya text-[var(--color-goldLight)] leading-tight">
               Contacto
             </h1>
-            <p
-              className="text-[15px] md:text-[18px] lg:text-[22px]
-                           font-Abhaya leading-tight mt-4"
-            >
+            <p className="text-[15px] md:text-[18px] lg:text-[22px] font-Abhaya leading-tight mt-4">
               Estoy aquí para guiarte en tu camino espiritual.
             </p>
           </div>
         </div>
       </section>
+
       <section className="flex flex-col items-center px-4 sm:px-6 md:px-10 lg:px-[45px]">
         <div className="flex flex-col lg:flex-row gap-10 w-full max-w-[1200px] mt-[74px] mb-[106px]">
           <div className="flex-1 relative">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md" />
             <div className="relative z-10 p-6 sm:p-8">
               <h3 className="text-[24px] md:text-[28px] font-Abhaya text-[#9E874D] mb-6">
                 Envíame un mensaje
               </h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                   <label className="text-[14px] md:text-[15px] font-inter text-[#7C7C70]">
                     Nombre
                   </label>
                   <input
                     type="text"
-                    required
+                    {...register("name")}
                     className="block w-full h-[35px] bg-tertiary border border-goldLight rounded-md mt-1 px-3 focus:outline-none focus:ring-2 focus:ring-goldLight"
                   />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-[14px] md:text-[15px] font-inter text-[#7C7C70]">
@@ -66,19 +90,30 @@ function Contacto() {
                   </label>
                   <input
                     type="email"
-                    required
+                    {...register("email")}
                     className="block w-full h-[35px] bg-tertiary border border-goldLight rounded-md mt-1 px-3 focus:outline-none focus:ring-2 focus:ring-goldLight"
                   />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="text-[14px] md:text-[15px] font-inter text-[#7C7C70]">
                     Mensaje
                   </label>
                   <textarea
-                    required
+                    {...register("message")}
                     className="block w-full h-[120px] sm:h-[130px] bg-tertiary border border-goldLight rounded-md mt-1 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-goldLight"
                   />
+                  {errors.message && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.message.message}
+                    </p>
+                  )}
                 </div>
+
                 <button
                   type="submit"
                   className="w-full h-[42px] bg-[#9E874D] text-tertiary font-inter text-[16px] rounded-md hover:opacity-90 transition cursor-pointer"
@@ -86,6 +121,7 @@ function Contacto() {
                   Enviar Mensaje
                 </button>
               </form>
+
               {showPopup && (
                 <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md bg-white border border-goldLight text-center rounded-lg shadow-lg p-4 animate-fade-in-out z-20">
                   <p className="text-[16px] font-inter text-[#7C7C70]">
@@ -96,9 +132,10 @@ function Contacto() {
               )}
             </div>
           </div>
+
           <div className="flex-1 flex flex-col gap-6">
             <div className="relative h-[auto]">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md" />
               <div className="relative z-10 p-6 sm:p-8">
                 <h3 className="text-[24px] md:text-[28px] font-Abhaya text-[#9E874D] mb-4">
                   Información de contacto
@@ -141,7 +178,7 @@ function Contacto() {
             </div>
 
             <div className="relative h-[auto]">
-              <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md" />
               <div className="relative z-10 p-6 sm:p-8">
                 <h3 className="text-[24px] md:text-[28px] font-Abhaya text-[#9E874D] mb-4">
                   Consultas personalizadas
@@ -150,11 +187,12 @@ function Contacto() {
                   Para una experiencia más personalizada, agenda una consulta
                   directamente a través de nuestro sistema de reservas.
                 </p>
-                <Link to="/agenda">
-                  <button className="w-full md:w-[170px] h-[35px] bg-goldLight text-tertiary font-inter text-[16px] rounded-md hover:opacity-90 cursor-pointer transition">
-                    Agendar consulta
-                  </button>
-                </Link>
+                <button
+                  onClick={handleAgendaClick}
+                  className="w-full md:w-[170px] h-[35px] bg-goldLight text-tertiary font-inter text-[16px] rounded-md hover:opacity-90 cursor-pointer transition"
+                >
+                  Agendar consulta
+                </button>
               </div>
             </div>
           </div>
