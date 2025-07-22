@@ -23,6 +23,7 @@ Aplicación web desarrollada en **React** y **TailwindCSS** para la guía espiri
 ## Instalación
 
 1. Clona el repositorio:
+
    ```sh
    git clone https://github.com/tuusuario/rubiela-tarot.git
    cd rubiela-tarot/frontend
@@ -31,35 +32,35 @@ Aplicación web desarrollada en **React** y **TailwindCSS** para la guía espiri
 
 ## 2. Instala las dependencias:
 
-npm install
+- npm install
 
 ## 3. Crea un archivo .env en la carpeta frontend y agrega tu clave de API:
 
-VITE_API_NINJAS_KEY=TU_CLAVE_API
+- VITE_API_NINJAS_KEY=TU_CLAVE_API
 
 ## 4. nicia la aplicación:
 
-npm run dev
+- npm run dev
 
 ## Scripts útiles
 
-npm run dev — Inicia el servidor de desarrollo.
-npm run build — Genera la versión de producción.
-npm run lint — Ejecuta ESLint para revisar el código.
+- npm run dev — Inicia el servidor de desarrollo.
+- npm run build — Genera la versión de producción.
+- npm run lint — Ejecuta ESLint para revisar el código.
 
 ## Estructura principal
 
-src/pages — Páginas principales (Home, Consultas, Agenda, Contacto, etc.)
-src/components — Componentes reutilizables (Navbar, Footer, SidebarHoroscopo, etc.)
-src/schemas — Esquemas de validación Yup.
-src/utils — Utilidades (API, manejo de tokens, etc.)
-src/contexts — Contexto global de autenticación.
+- src/pages — Páginas principales (Home, Consultas, Agenda, Contacto, etc.)
+- src/components — Componentes reutilizables (Navbar, Footer, SidebarHoroscopo, etc.)
+- src/schemas — Esquemas de validación Yup.
+- src/utils — Utilidades (API, manejo de tokens, etc.)
+- src/contexts — Contexto global de autenticación.
 
 ## API
 
-Horóscopos: Se obtiene el horóscopo diario usando la API de api-ninjas.com.
-Usuarios: El registro y autenticación se realiza mediante una API propia (pendiente de implementación en backend).
-Licencia
-Proyecto educativo y de uso personal.
+- Horóscopos: Se obtiene el horóscopo diario usando la API de api-ninjas.com.
+- Usuarios: El registro y autenticación se realiza mediante una API propia (pendiente de implementación en backend).
+- Licencia
+  Proyecto educativo y de uso personal.
 
 Desarrollado con ❤️ para Rubiela Pineda Espiritual.
