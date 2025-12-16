@@ -13,7 +13,7 @@ const contactRoutes = require('./routes/contact.routes');
 const horoscopeRoutes = require('./routes/horoscope.routes');
 
 // Middlewares
-// const errorMiddleware = require('./middlewares/error.middleware');
+const errorMiddleware = require('./middlewares/error.middleware');
 
 const app = express();
 
@@ -34,6 +34,6 @@ app.use('/api/horoscope', horoscopeRoutes);
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 // Manejo global de errores
-// app.use(errorMiddleware);
+app.use(errorMiddleware);
 
 module.exports = app;
