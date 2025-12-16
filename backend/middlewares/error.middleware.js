@@ -1,28 +1,22 @@
 const { isCelebrateError } = require('celebrate');
-const AppError = require('../utils/AppError');
 
 const errorMiddleware = (err, req, res, next) => {
-
-    // Errores de Celebrate (validaciones)
+    // Errores de validación Joi
     if (isCelebrateError(err)) {
-        const message = err.details.get('body')?.message || 'Datos inválidos';
-        return res.status(400).json({ status: 'fail', message });
-    }
-
-    // Errores operacionales
-    if (err instanceof AppError) {
-        return res.status(err.statusCode).json({
-            status: err.status,
-            message: err.message
+        const errorBody = err.details.get('body');
+        return res.status(400).json({
+            status: 'fail',
+            message: errorBody.message
         });
     }
 
-    console.error('❌ ERROR NO CONTROLADO:', err);
+    // Errores personalizados
+    const statusCode = err.statusCode || 500;
+    const message = err.message || 'Error interno del servidor';
 
-    // Error 500
-    res.status(500).json({
-        status: 'error',
-        message: 'Error interno del servidor'
+    res.status(statusCode).json({
+        status: err.status || 'error',
+        message
     });
 };
 
