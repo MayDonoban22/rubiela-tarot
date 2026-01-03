@@ -5,8 +5,8 @@ const morgan = require('morgan');
 
 // Importación de rutas con la nueva estructura
 const authRoutes = require('./routes/auth.routes');
-// const adminRoutes = require('./routes/admin.routes');
-// const usersRoutes = require('./routes/users.routes');
+const adminRoutes = require('./routes/admin.routes');
+const usersRoutes = require('./routes/users.routes');
 // const serviciosRoutes = require('./routes/servicios.routes');
 const turnosRoutes = require('./routes/turnos.routes');
 const contactRoutes = require('./routes/contact.routes');
@@ -23,8 +23,8 @@ app.use(morgan('dev'));
 
 // Rutas API
 app.use('/api/auth', authRoutes);
-// app.use('/api/admin', adminRoutes);
-// app.use('/api/users', usersRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/users', usersRoutes);
 // app.use('/api/servicios', serviciosRoutes);
 app.use('/api/turnos', turnosRoutes);
 app.use('/api/contact', contactRoutes);
