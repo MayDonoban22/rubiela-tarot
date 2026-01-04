@@ -8,7 +8,7 @@ const turnoSchema = new mongoose.Schema({
     },
     servicio: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Servicio',
+        ref: 'Service',
         required: true
     },
     fecha: {
