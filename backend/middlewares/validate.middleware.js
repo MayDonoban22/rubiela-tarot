@@ -26,10 +26,13 @@ const schemas = {
 };
 
 const validate = (schemaName) => {
-    if (!schemas[schemaName]) {
-        throw new Error(`Schema ${schemaName} no existe`);
-    }
-    return celebrate(schemas[schemaName]);
+    // return celebrate(schemas[schemaName]);
+    return (req, res, next) => {
+        if (!schemas[schemaName]) {
+            throw new Error(`Schema ${schemaName} no existe`);
+        }
+        next();
+    };
 };
 
 module.exports = { validate };

@@ -5,7 +5,8 @@ const { validate } = require('../middlewares/validate.middleware');
 const router = express.Router();
 
 // Rutas de autenticación
-router.post('/register', validate('register'), registerUser);
-router.post('/login', validate('login'), loginUser);
+// router.post('/register', validate('register'), registerUser);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 
 module.exports = router;
