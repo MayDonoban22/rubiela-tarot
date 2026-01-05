@@ -13,7 +13,16 @@ const schemas = {
             email: Joi.string().email().required(),
             password: Joi.string().required()
         })
+    },
+    service: {
+        [Segments.BODY]: Joi.object({
+            nombre: Joi.string().min(3).required(),
+            descripcion: Joi.string().min(10).required(),
+            precio: Joi.number().positive().required(),
+            duracion: Joi.number().positive().required()
+        })
     }
+
 };
 
 const validate = (schemaName) => {
