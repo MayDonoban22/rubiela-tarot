@@ -22,17 +22,13 @@ const schemas = {
             duracion: Joi.number().positive().required()
         })
     }
-
 };
 
 const validate = (schemaName) => {
-    // return celebrate(schemas[schemaName]);
-    return (req, res, next) => {
-        if (!schemas[schemaName]) {
-            throw new Error(`Schema ${schemaName} no existe`);
-        }
-        next();
-    };
+    if (!schemas[schemaName]) {
+        throw new Error(`Schema ${schemaName} no existe`);
+    }
+    return celebrate(schemas[schemaName]);
 };
 
 module.exports = { validate };
