@@ -19,7 +19,7 @@ const register = async (req, res, next) => {
 
         const user = await User.create({ name, email, password });
 
-        const token = createToken(user._id);
+        const token = createToken(user);
 
         res.status(201).json({
             message: 'Usuario registrado con éxito',
@@ -45,7 +45,7 @@ const login = async (req, res, next) => {
         const valid = await user.comparePassword(password);
         if (!valid) return next(new AppError('Credenciales incorrectas', 401));
 
-        const token = createToken(user._id);
+        const token = createToken(user);
 
         res.json({
             message: 'Login exitoso',
