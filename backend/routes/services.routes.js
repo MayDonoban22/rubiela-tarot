@@ -7,13 +7,17 @@ const { validate } = require('../middlewares/validate.middleware');
 
 const {
     crearServicio,
-    listarServicios
+    listarServicios,
+    listarServiciosAdmin,
+    toggleServicio
 } = require('../controllers/services.controller');
 
-// Público (usuarios pueden ver servicios)
+
+// PUBLICO — usuarios ven servicios activos
 router.get('/', listarServicios);
 
-// Solo admin puede crear servicios
+
+// ADMIN — crear servicio
 router.post(
     '/crear-servicio',
     authMiddleware,
@@ -21,5 +25,24 @@ router.post(
     validate('service'),
     crearServicio
 );
+
+
+// ADMIN — ver todos los servicios
+router.get(
+    '/admin',
+    authMiddleware,
+    roleMiddleware('admin'),
+    listarServiciosAdmin
+);
+
+
+// ADMIN — activar / desactivar servicio
+router.patch(
+    '/:id',
+    authMiddleware,
+    roleMiddleware('admin'),
+    toggleServicio
+);
+
 
 module.exports = router;
