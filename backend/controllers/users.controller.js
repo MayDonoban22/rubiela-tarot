@@ -9,4 +9,16 @@ const getProfile = async (req, res, next) => {
     }
 };
 
-module.exports = { getProfile };
+const getUsers = async (req, res, next) => {
+    try {
+        const users = await User.find().select('-password');
+        res.json(users);
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = {
+    getProfile,
+    getUsers
+};

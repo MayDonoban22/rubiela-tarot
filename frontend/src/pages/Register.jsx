@@ -5,9 +5,9 @@ import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "../schemas";
-import { useContext, useState } from "react";
-import AppContext from "../contexts/AppContext";
-import { setToken } from "../utils/token";
+import { useState } from "react";
+import { useAppContext } from "../hooks/useAppContext";
+// import { setToken } from "../utils/token";
 import InfoTooltip from "../components/InfoTooltip";
 
 const tokenRegister = async (data) => {
@@ -26,16 +26,18 @@ const Register = () => {
     formState: { errors },
   } = useForm({ resolver: yupResolver(registerSchema) });
 
-  const { setIsLoggedIn } = useContext(AppContext);
+  const { login } = useAppContext();
   const navigate = useNavigate();
   const [showTooltip, setShowTooltip] = useState(false);
 
   const onSubmit = async (data) => {
     try {
       const response = await tokenRegister(data);
-      setToken(response.token);
-      setIsLoggedIn(true);
+
+      login(response.token); // ✅ ÚNICO lugar
+
       setShowTooltip(true);
+
       setTimeout(() => {
         setShowTooltip(false);
         navigate("/login", { replace: true });
@@ -44,7 +46,6 @@ const Register = () => {
       console.error("Error al registrar:", error);
     }
   };
-
   return (
     <>
       <HeaderAuthSimple variant="register" />

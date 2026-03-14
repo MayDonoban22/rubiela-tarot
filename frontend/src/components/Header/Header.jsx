@@ -1,4 +1,4 @@
-import { fetchHoroscope } from "../../utils/api";
+import { fetchHoroscope } from "../../utils/horoscope";
 import Navbar from "../Navbar/Navbar";
 import { useEffect } from "react";
 

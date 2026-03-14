@@ -1,7 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { setToken } from "../utils/token";
-import { useContext } from "react";
-import AppContext from "../contexts/AppContext";
+import { useAppContext } from "../hooks/useAppContext";
 import { Link } from "react-router-dom";
 import HeaderAuthSimple from "../components/Header/HeaderAuthSimple";
 import Footer from "../components/Footer/Footer";
@@ -16,25 +14,48 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm({ resolver: yupResolver(loginSchema) });
+
   const navigate = useNavigate();
   const location = useLocation();
-  const { setIsLoggedIn } = useContext(AppContext);
+  const { login } = useAppContext();
 
-  const onSubmit = (data) => {
-    console.log("Datos válidos:", data);
+  const onSubmit = async (data) => {
+    try {
+      console.log("Datos válidos:", data);
 
-    // aquí iría la llamada real a una API
-    const token = "jwt_simulado_luz_de_rubi";
-    setToken(token);
-    setIsLoggedIn(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        },
+      );
 
-    const redirectTo = location.state?.from?.pathname || "/agenda";
-    navigate(redirectTo, { replace: true });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Error en login");
+      }
+
+      // 👉 Guardamos token en contexto
+      login(result.token);
+
+      // 👉 Redirección inteligente
+      const redirectTo = location.state?.from?.pathname || "/agenda";
+      navigate(redirectTo, { replace: true });
+    } catch (error) {
+      console.error("Error login:", error.message);
+      alert(error.message);
+    }
   };
 
   return (
     <>
       <HeaderAuthSimple variant="login" />
+
       <div className="bg-primary flex flex-col min-h-screen">
         <div className="flex flex-col lg:flex-row border border-[var(--color-goldLight)] flex-grow min-h-[92vh]">
           <div className="lg:w-1/2 hidden lg:flex items-center justify-center">
@@ -44,6 +65,7 @@ const Login = () => {
               className="w-full h-full object-cover"
             />
           </div>
+
           <div className="lg:w-1/2 flex items-center justify-center border-l border-[var(--color-goldLight)] px-6 py-40">
             <form
               onSubmit={handleSubmit(onSubmit)}
@@ -54,43 +76,49 @@ const Login = () => {
                 Iniciar sesión
               </h2>
 
+              {/* EMAIL */}
               <div className="flex flex-col">
                 <label className="text-lg md:text-xl font-[abhaya] text-[#9E874D] mb-2">
                   Correo electrónico
                 </label>
+
                 <div className="relative">
                   <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9E874D]" />
                   <input
                     type="email"
                     {...register("email")}
-                    className={`pl-10 pr-3 block w-full h-[35px] bg-tertiary border rounded-md focus:outline-none focus:ring-2 text-black text-sm md:text-base ${
+                    className={`pl-10 pr-3 block w-full h-[35px] bg-tertiary border rounded-md focus:outline-none focus:ring-2 text-black ${
                       errors.email
                         ? "border-red-500 focus:ring-red-500"
                         : "border-goldLight focus:ring-goldLight"
                     }`}
                   />
                 </div>
+
                 {errors.email && (
                   <p className="text-red-500 text-sm">{errors.email.message}</p>
                 )}
               </div>
 
+              {/* PASSWORD */}
               <div className="flex flex-col">
                 <label className="text-lg md:text-xl font-[abhaya] text-[#9E874D] mb-2">
                   Contraseña
                 </label>
+
                 <div className="relative">
                   <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9E874D]" />
                   <input
                     type="password"
                     {...register("password")}
-                    className={`pl-10 pr-3 block w-full h-[35px] bg-tertiary border rounded-md focus:outline-none focus:ring-2 text-black text-sm md:text-base ${
+                    className={`pl-10 pr-3 block w-full h-[35px] bg-tertiary border rounded-md focus:outline-none focus:ring-2 text-black ${
                       errors.password
                         ? "border-red-500 focus:ring-red-500"
                         : "border-goldLight focus:ring-goldLight"
                     }`}
                   />
                 </div>
+
                 {errors.password && (
                   <p className="text-red-500 text-sm">
                     {errors.password.message}
@@ -101,11 +129,12 @@ const Login = () => {
               <div className="flex flex-col items-center mt-8 space-y-5">
                 <button
                   type="submit"
-                  className="w-full md:w-[170px] h-[35px] bg-goldLight text-tertiary font-inter text-sm md:text-base rounded-md hover:opacity-90 cursor-pointer transition"
+                  className="w-full md:w-[170px] h-[35px] bg-goldLight text-tertiary rounded-md hover:opacity-90 cursor-pointer transition"
                 >
                   Iniciar sesión
                 </button>
-                <p className="text-tertiary text-sm md:text-base font-inter text-center">
+
+                <p className="text-tertiary text-sm text-center">
                   ¿Aún no eres miembro?{" "}
                   <Link to="/registro" className="underline">
                     Regístrate aquí
@@ -115,6 +144,7 @@ const Login = () => {
             </form>
           </div>
         </div>
+
         <Footer />
       </div>
     </>

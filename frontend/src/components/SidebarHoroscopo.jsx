@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { fetchHoroscope } from "../utils/api";
+import { fetchHoroscope } from "../utils/horoscope";
 import {
   GiAries,
   GiTaurus,

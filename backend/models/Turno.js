@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const turnoSchema = new mongoose.Schema({
-    usuario: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true
     },
     servicio: {
