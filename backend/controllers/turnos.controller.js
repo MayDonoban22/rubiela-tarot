@@ -68,6 +68,55 @@ const createTurno = async (req, res, next) => {
 
         });
 
+        // Enviar email de confirmación
+        // obtener usuario
+
+        const user = await User.findById(req.user.id);
+
+
+        // EMAIL USUARIO
+        await sendEmail(
+
+            user.email,
+
+            "Confirmación de turno - Luz de Rubí",
+
+            `
+    <h2>Tu turno fue agendado correctamente</h2>
+
+    <p><strong>Servicio:</strong> ${servicioDB.nombre}</p>
+
+    <p><strong>Fecha:</strong> ${fecha}</p>
+
+    <p><strong>Hora:</strong> ${hora}</p>
+
+    <p>Gracias por confiar en Luz de Rubí.</p>
+    `
+        );
+
+
+        // EMAIL ADMIN
+        await sendEmail(
+
+            process.env.ADMIN_EMAIL,
+
+            "Nuevo turno reservado",
+
+            `
+    <h2>Nuevo turno reservado</h2>
+
+    <p><strong>Cliente:</strong> ${user.name}</p>
+
+    <p><strong>Email:</strong> ${user.email}</p>
+
+    <p><strong>Servicio:</strong> ${servicioDB.nombre}</p>
+
+    <p><strong>Fecha:</strong> ${fecha}</p>
+
+    <p><strong>Hora:</strong> ${hora}</p>
+    `
+        );
+
 
         res.status(201).json({
 
