@@ -161,6 +161,81 @@ const getMyTurnos = async (req, res, next) => {
     }
 };
 
+// USER cancelar turno
+const cancelTurno = async (req, res, next) => {
+
+    try {
+
+        const turno = await Turno.findById(req.params.id);
+
+        if (!turno) {
+
+            return res.status(404).json({
+
+                message: "Turno no encontrado"
+
+            });
+
+        }
+
+
+        // validar dueño
+        if (turno.user.toString() !== req.user.id) {
+
+            return res.status(403).json({
+
+                message: "No autorizado"
+
+            });
+
+        }
+
+
+        // no cancelar si está pagado
+        if (turno.estado === 'pagado') {
+
+            return res.status(400).json({
+
+                message: "Un turno pagado no puede cancelarse"
+
+            });
+
+        }
+
+
+        // evitar doble cancelación
+        if (turno.estado === 'cancelado') {
+
+            return res.status(400).json({
+
+                message: "Este turno ya está cancelado"
+
+            });
+
+        }
+
+
+        turno.estado = "cancelado";
+
+        await turno.save();
+
+
+        res.json({
+
+            message: "Turno cancelado correctamente",
+
+            turno
+
+        });
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
 
 // ADMIN
 const updateTurnoStatus = async (req, res, next) => {
@@ -216,6 +291,7 @@ module.exports = {
     getAllTurnos,
     createTurno,
     getMyTurnos,
-    updateTurnoStatus
+    updateTurnoStatus,
+    cancelTurno
 
 };
