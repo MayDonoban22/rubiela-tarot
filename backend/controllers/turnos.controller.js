@@ -75,13 +75,15 @@ const createTurno = async (req, res, next) => {
 
 
         // EMAIL USUARIO
-        await sendEmail(
 
-            user.email,
+        try {
+            await sendEmail(
 
-            "Confirmación de turno - Luz de Rubí",
+                user.email,
 
-            `
+                "Confirmación de turno - Luz de Rubí",
+
+                `
     <h2>Tu turno fue agendado correctamente</h2>
 
     <p><strong>Servicio:</strong> ${servicioDB.nombre}</p>
@@ -92,10 +94,16 @@ const createTurno = async (req, res, next) => {
 
     <p>Gracias por confiar en Luz de Rubí.</p>
     `
-        );
+            );
 
+        } catch (error) {
+
+            console.log("Email failed");
+        }
 
         // EMAIL ADMIN
+
+
         await sendEmail(
 
             process.env.ADMIN_EMAIL,
