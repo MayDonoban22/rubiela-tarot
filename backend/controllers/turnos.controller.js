@@ -103,14 +103,14 @@ const createTurno = async (req, res, next) => {
 
         // EMAIL ADMIN
 
+        try {
+            await sendEmail(
 
-        await sendEmail(
+                process.env.ADMIN_EMAIL,
 
-            process.env.ADMIN_EMAIL,
+                "Nuevo turno reservado",
 
-            "Nuevo turno reservado",
-
-            `
+                `
     <h2>Nuevo turno reservado</h2>
 
     <p><strong>Cliente:</strong> ${user.name}</p>
@@ -123,9 +123,12 @@ const createTurno = async (req, res, next) => {
 
     <p><strong>Hora:</strong> ${hora}</p>
     `
-        );
+            );
 
+        } catch (error) {
 
+            console.log("Email failed");
+        }
         res.status(201).json({
 
             message: 'Turno creado correctamente',
