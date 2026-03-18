@@ -178,7 +178,6 @@ const cancelTurno = async (req, res, next) => {
 
         }
 
-
         // validar dueño
         if (turno.user.toString() !== req.user.id) {
 
@@ -218,7 +217,34 @@ const cancelTurno = async (req, res, next) => {
         turno.estado = "cancelado";
 
         await turno.save();
+        const user = await User.findById(turno.user);
 
+        try {
+
+            await sendEmail(
+
+                user.email,
+
+                "Turno cancelado",
+
+                `
+        <h2>Tu turno fue cancelado</h2>
+
+        <p>Fecha: ${turno.fecha}</p>
+
+        <p>Hora: ${turno.hora}</p>
+
+        <p>Si necesitas reagendar puedes hacerlo desde tu panel.</p>
+
+        `
+
+            );
+
+        } catch (error) {
+
+            console.log("Email failed");
+
+        }
 
         res.json({
 
