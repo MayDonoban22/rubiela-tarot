@@ -378,6 +378,6 @@ module.exports = {
     createTurno,
     getMyTurnos,
     updateTurnoStatus,
-    cancelTurno
-
+    cancelTurno,
+    rescheduleTurno
 };
