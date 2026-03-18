@@ -236,6 +236,92 @@ const cancelTurno = async (req, res, next) => {
 
 };
 
+// USER reagendar turno
+const rescheduleTurno = async (req, res, next) => {
+
+    try {
+
+        const { fecha, hora } = req.body;
+
+        const turno = await Turno.findById(req.params.id);
+
+        if (!turno) {
+
+            return res.status(404).json({
+
+                message: "Turno no encontrado"
+
+            });
+
+        }
+
+
+        // validar dueño
+        if (turno.user.toString() !== req.user.id) {
+
+            return res.status(403).json({
+
+                message: "No autorizado"
+
+            });
+
+        }
+
+
+        // no reagendar cancelados
+        if (turno.estado === 'cancelado') {
+
+            return res.status(400).json({
+
+                message: "No se puede reagendar un turno cancelado"
+
+            });
+
+        }
+
+
+        // validar horario ocupado
+        const ocupado = await Turno.findOne({
+
+            fecha,
+            hora,
+            servicio: turno.servicio
+
+        });
+
+
+        if (ocupado) {
+
+            return res.status(400).json({
+
+                message: "Ese horario ya está ocupado"
+
+            });
+
+        }
+
+
+        turno.fecha = fecha;
+        turno.hora = hora;
+
+        await turno.save();
+
+
+        res.json({
+
+            message: "Turno reagendado correctamente",
+
+            turno
+
+        });
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
 
 // ADMIN
 const updateTurnoStatus = async (req, res, next) => {
