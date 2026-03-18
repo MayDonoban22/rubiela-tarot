@@ -332,6 +332,32 @@ const rescheduleTurno = async (req, res, next) => {
 
         await turno.save();
 
+        const user = await User.findById(turno.user);
+
+        try {
+
+            await sendEmail(
+
+                user.email,
+
+                "Turno reagendado",
+
+                `
+        <h2>Tu turno fue reagendado</h2>
+
+        <p>Nueva fecha: ${fecha}</p>
+
+        <p>Nueva hora: ${hora}</p>
+
+`
+
+            );
+
+        } catch (error) {
+
+            console.log("Email failed");
+
+        }
 
         res.json({
 
