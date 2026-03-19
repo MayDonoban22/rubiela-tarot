@@ -20,9 +20,23 @@ const turnoSchema = new mongoose.Schema({
         required: true
     },
     estado: {
+
         type: String,
-        enum: ['pendiente', 'pagado', 'cancelado'],
+
+        enum: [
+
+            'pendiente',
+
+            'pagado',
+
+            'cancelado',
+
+            'completado'
+
+        ],
+
         default: 'pendiente'
+
     }
 }, { timestamps: true });
 
