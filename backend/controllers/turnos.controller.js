@@ -1,7 +1,7 @@
 const Turno = require('../models/Turno');
 const Service = require('../models/Service');
 const sendEmail = require('../utils/sendEmail');
-const User = require('../models/User');
+const User = require('../models/User.model');
 
 
 // ADMIN
