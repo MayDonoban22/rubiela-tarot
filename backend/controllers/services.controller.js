@@ -16,7 +16,8 @@ const crearServicio = async (req, res, next) => {
             nombre,
             descripcion,
             precio,
-            duracion
+            duracion,
+            activo: true
         });
 
         res.status(201).json({
