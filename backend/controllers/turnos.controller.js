@@ -381,6 +381,16 @@ const updateTurnoStatus = async (req, res, next) => {
 
         const { estado } = req.body;
 
+        if (!estado) {
+
+            return res.status(400).json({
+
+                message: "Debe enviar estado"
+
+            });
+
+        }
+
         const validateState = [
             'pendiente',
             'pagado',
