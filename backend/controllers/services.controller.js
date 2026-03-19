@@ -76,8 +76,13 @@ const toggleServicio = async (req, res, next) => {
         await servicio.save();
 
         res.json({
+
             message: "Estado actualizado",
-            servicio
+
+            id: servicio._id,
+
+            activo: servicio.activo
+
         });
 
     } catch (error) {
