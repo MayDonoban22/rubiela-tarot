@@ -52,4 +52,11 @@ const turnoSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+turnoSchema.index({
+
+    fecha: 1,
+    hora: 1
+
+});
+
 module.exports = mongoose.model('Turno', turnoSchema);
