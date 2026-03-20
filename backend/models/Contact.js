@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const contactSchema = new mongoose.Schema({
-    nombre: {
+    name: {
         type: String,
         required: true
     },
@@ -12,6 +12,11 @@ const contactSchema = new mongoose.Schema({
     mensaje: {
         type: String,
         required: true
+    },
+    status: {
+        type: String,
+        enum: ['nuevo', 'respondido'],
+        default: 'nuevo'
     }
 }, { timestamps: true });
 
