@@ -29,6 +29,7 @@ const sendMessage = async (req, res, next) => {
 
         });
 
+        console.log("New contact message:", newMessage._id);
 
         // EMAIL USER
         try {
