@@ -18,14 +18,8 @@ const sendMessage = async (req, res, next) => {
 
         if (!name || !email || !message) {
 
-            return res.status(400).json({
-
-                message: "Todos los campos son obligatorios"
-
-            });
-
+            return next(new AppError("Todos los campos son obligatorios", 400));
         }
-
 
         const newMessage = await Contact.create({
 
@@ -46,15 +40,15 @@ const sendMessage = async (req, res, next) => {
                 "Hemos recibido tu mensaje",
 
                 `
-<h2>Hola ${name}</h2>
+                <h2>Hola ${name}</h2>
 
-<p>Gracias por contactar a Luz de Rubí.</p>
+                <p>Gracias por contactar a Luz de Rubí.</p>
 
-<p>Tu mensaje fue recibido correctamente.</p>
+                <p>Tu mensaje fue recibido correctamente.</p>
 
-<p>Te responderemos pronto.</p>
+                <p>Te responderemos pronto.</p>
 
-`
+                    `
 
             );
 
@@ -75,17 +69,17 @@ const sendMessage = async (req, res, next) => {
                 "Nuevo mensaje contacto",
 
                 `
-<h2>Nuevo mensaje</h2>
+                <h2>Nuevo mensaje</h2>
 
-<p>Nombre: ${name}</p>
+                <p>Nombre: ${name}</p>
 
-<p>Email: ${email}</p>
+                <p>Email: ${email}</p>
 
-<p>Mensaje:</p>
+                <p>Mensaje:</p>
 
-<p>${message}</p>
+                <p>${message}</p>
 
-`
+                `
 
             );
 
@@ -95,13 +89,9 @@ const sendMessage = async (req, res, next) => {
 
         }
 
-
-
         res.status(201).json({
 
             message: "Mensaje enviado correctamente",
-
-            newMessage
 
         });
 
