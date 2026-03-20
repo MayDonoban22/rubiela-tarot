@@ -1,22 +1,22 @@
 const express = require('express');
 const router = express.Router();
 
-const {
+const authMiddleware = require('../middlewares/auth.middleware');
+const roleMiddleware = require('../middlewares/role.middleware');
 
-    sendMessage
-
-} = require('../controllers/contact.controller');
+const { getMessages, sendMessage } = require('../controllers/contact.controller');
 
 
-// Enviar mensaje contacto
-router.post(
+// User - Enviar mensaje contacto
+router.post('/', sendMessage);
 
-    '/',
-
-    sendMessage
-
+// ADMIN — ver mensajes
+router.get(
+    '/admin',
+    authMiddleware,
+    roleMiddleware('admin'),
+    getMessages
 );
-
 
 // Test
 router.get('/test', (req, res) => {

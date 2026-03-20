@@ -1,43 +1,55 @@
 const mongoose = require('mongoose');
 
 const turnoSchema = new mongoose.Schema({
+
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
+
     servicio: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service',
         required: true
     },
+
     fecha: {
-        type: String,
+        type: Date,
         required: true
     },
+
     hora: {
         type: String,
         required: true
     },
+
     estado: {
-
         type: String,
-
         enum: [
-
             'pendiente',
-
-            'pagado',
-
+            'confirmado',
+            'completado',
             'cancelado',
-
-            'completado'
-
+            'reagendado',
+            'no_asistio'
         ],
-
         default: 'pendiente'
+    },
 
+    notasAdmin: {
+        type: String
+    },
+
+    motivoCancelacion: {
+        type: String
+    },
+
+    reagendadoPara: {
+        fecha: Date,
+        hora: String
     }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Turno', turnoSchema);

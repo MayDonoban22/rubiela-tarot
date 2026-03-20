@@ -1,5 +1,6 @@
 const Contact = require('../models/Contact');
 const sendEmail = require('../utils/sendEmail');
+const AppError = require('../utils/AppError');
 
 const getMessages = async (req, res, next) => {
     try {
