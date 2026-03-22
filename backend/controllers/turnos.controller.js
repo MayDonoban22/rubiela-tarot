@@ -188,14 +188,12 @@ const cancelTurno = async (req, res, next) => {
             });
 
         }
-
-
         // no cancelar si está pagado
-        if (turno.estado === 'pagado') {
+        if (turno.estado === 'completado') {
 
             return res.status(400).json({
 
-                message: "Un turno pagado no puede cancelarse"
+                message: "Un turno completado no puede cancelarse"
 
             });
 
