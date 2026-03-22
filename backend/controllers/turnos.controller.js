@@ -23,9 +23,8 @@ const getAllTurnos = async (req, res, next) => {
 // USER
 const createTurno = async (req, res, next) => {
     try {
-
         const { fecha, hora, servicio } = req.body;
-
+        const fechaDate = new Date(fecha);
 
         // validar servicio existe
         const servicioDB = await Service.findById(servicio);
@@ -47,9 +46,10 @@ const createTurno = async (req, res, next) => {
 
         // validar horario ocupado
         const turnoExistente = await Turno.findOne({
-            fecha,
+            fecha: fechaDate,
             hora,
-            servicio
+            servicio,
+            estado: { $ne: 'cancelado' }
         });
 
         if (turnoExistente) {
@@ -84,15 +84,15 @@ const createTurno = async (req, res, next) => {
                 "Confirmación de turno - Luz de Rubí",
 
                 `
-    <h2>Tu turno fue agendado correctamente</h2>
+                <h2>Tu turno fue agendado correctamente</h2>
 
-    <p><strong>Servicio:</strong> ${servicioDB.nombre}</p>
+                <p><strong>Servicio:</strong> ${servicioDB.nombre}</p>
 
-    <p><strong>Fecha:</strong> ${fecha}</p>
+                <p><strong>Fecha:</strong> ${fecha}</p>
 
-    <p><strong>Hora:</strong> ${hora}</p>
+                <p><strong>Hora:</strong> ${hora}</p>
 
-    <p>Gracias por confiar en Luz de Rubí.</p>
+                <p>Gracias por confiar en Luz de Rubí.</p>
     `
             );
 
@@ -111,18 +111,18 @@ const createTurno = async (req, res, next) => {
                 "Nuevo turno reservado",
 
                 `
-    <h2>Nuevo turno reservado</h2>
+                <h2>Nuevo turno reservado</h2>
 
-    <p><strong>Cliente:</strong> ${user.name}</p>
+                <p><strong>Cliente:</strong> ${user.name}</p>
 
-    <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Email:</strong> ${user.email}</p>
 
-    <p><strong>Servicio:</strong> ${servicioDB.nombre}</p>
+                <p><strong>Servicio:</strong> ${servicioDB.nombre}</p>
 
-    <p><strong>Fecha:</strong> ${fecha}</p>
+                <p><strong>Fecha:</strong> ${fecha}</p>
 
-    <p><strong>Hora:</strong> ${hora}</p>
-    `
+                <p><strong>Hora:</strong> ${hora}</p>
+                `
             );
 
         } catch (error) {
@@ -423,7 +423,7 @@ const updateTurnoStatus = async (req, res, next) => {
 
         res.json({
 
-            message: "Estado del turno actualizado",
+            message: "Estado delconst { fecha, hora, servicio } = req.body; turno actualizado",
 
             turno
 
