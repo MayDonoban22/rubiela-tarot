@@ -211,8 +211,10 @@ const cancelTurno = async (req, res, next) => {
 
         }
 
+        const { motivo } = req.body;
 
         turno.estado = "cancelado";
+        turno.motivoCancelacion = motivo || "Cancelado por usuario";
 
         await turno.save();
         const user = await User.findById(turno.user);
