@@ -392,10 +392,12 @@ const updateTurnoStatus = async (req, res, next) => {
         }
 
         const validateState = [
-            'pendiente',
-            'pagado',
-            'cancelado',
-            'completado'
+            "pendiente",
+            "confirmado",
+            "completado",
+            "cancelado",
+            "reagendado",
+            "no_asistio"
         ];
 
         if (!validateState.includes(estado)) {
