@@ -2,18 +2,21 @@ const express = require('express');
 const router = express.Router();
 
 const authMiddleware = require('../middlewares/auth.middleware');
+const roleMiddleware = require('../middlewares/role.middleware');
 
 const {
 
     createTurno,
     getMyTurnos,
     cancelTurno,
-    rescheduleTurno
+    rescheduleTurno,
+    getAllTurnos,
+    updateTurnoStatus
 
 } = require('../controllers/turnos.controller');
 
 
-// Ver mis turnos
+// USER — ver mis turnos
 router.get(
 
     '/mis-turnos',
@@ -25,7 +28,7 @@ router.get(
 );
 
 
-// Crear turno
+// USER — crear turno
 router.post(
 
     '/',
@@ -37,7 +40,7 @@ router.post(
 );
 
 
-// Cancelar turno
+// USER — cancelar
 router.patch(
 
     '/cancel/:id',
@@ -49,7 +52,7 @@ router.patch(
 );
 
 
-// Reagendar turno
+// USER — reagendar
 router.patch(
 
     '/reschedule/:id',
@@ -61,7 +64,35 @@ router.patch(
 );
 
 
-// Test
+// ADMIN — ver todos
+router.get(
+
+    '/admin',
+
+    authMiddleware,
+
+    roleMiddleware('admin'),
+
+    getAllTurnos
+
+);
+
+
+// ADMIN — cambiar estado
+router.patch(
+
+    '/admin/:id',
+
+    authMiddleware,
+
+    roleMiddleware('admin'),
+
+    updateTurnoStatus
+
+);
+
+
+// TEST
 router.get('/test', (req, res) => {
 
     res.json({
@@ -71,6 +102,5 @@ router.get('/test', (req, res) => {
     });
 
 });
-
 
 module.exports = router;
