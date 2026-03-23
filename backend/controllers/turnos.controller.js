@@ -269,6 +269,20 @@ const rescheduleTurno = async (req, res, next) => {
 
         const { fecha, hora } = req.body;
 
+        // ✅ VALIDAR FECHA PASADA (AQUI)
+        const fechaDate = new Date(fecha);
+        const hoy = new Date();
+
+        if (fechaDate < hoy) {
+
+            return res.status(400).json({
+
+                message: "No puedes reagendar a una fecha pasada"
+
+            });
+
+        }
+
         const turno = await Turno.findById(req.params.id);
 
         if (!turno) {
@@ -343,13 +357,13 @@ const rescheduleTurno = async (req, res, next) => {
                 "Turno reagendado",
 
                 `
-        <h2>Tu turno fue reagendado</h2>
+                <h2>Tu turno fue reagendado</h2>
 
-        <p>Nueva fecha: ${fecha}</p>
+                <p>Nueva fecha: ${fecha}</p>
 
-        <p>Nueva hora: ${hora}</p>
+                <p>Nueva hora: ${hora}</p>
 
-`
+            `
 
             );
 
