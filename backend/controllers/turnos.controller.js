@@ -263,15 +263,30 @@ const cancelTurno = async (req, res, next) => {
 };
 
 // USER reagendar turno
+
 const rescheduleTurno = async (req, res, next) => {
 
     try {
 
         const { fecha, hora } = req.body;
 
-        // ✅ VALIDAR FECHA PASADA (AQUI)
+        // convertir fecha correctamente
         const fechaDate = new Date(fecha);
+
+        // validar fecha inválida
+        if (isNaN(fechaDate)) {
+
+            return res.status(400).json({
+
+                message: "Fecha inválida"
+
+            });
+
+        }
+
+        // validar fecha pasada
         const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
 
         if (fechaDate < hoy) {
 
@@ -295,7 +310,6 @@ const rescheduleTurno = async (req, res, next) => {
 
         }
 
-
         // validar dueño
         if (turno.user.toString() !== req.user.id) {
 
@@ -306,7 +320,6 @@ const rescheduleTurno = async (req, res, next) => {
             });
 
         }
-
 
         // no reagendar cancelados
         if (turno.estado === 'cancelado') {
@@ -319,16 +332,26 @@ const rescheduleTurno = async (req, res, next) => {
 
         }
 
+        // no reagendar completados
+        if (turno.estado === 'completado') {
 
-        // validar horario ocupado
+            return res.status(400).json({
+
+                message: "No se puede reagendar un turno completado"
+
+            });
+
+        }
+
+        // validar horario ocupado (ignorando cancelados)
         const ocupado = await Turno.findOne({
 
-            fecha,
+            fecha: fechaDate,
             hora,
-            servicio: turno.servicio
+            servicio: turno.servicio,
+            estado: { $ne: 'cancelado' }
 
         });
-
 
         if (ocupado) {
 
@@ -340,8 +363,18 @@ const rescheduleTurno = async (req, res, next) => {
 
         }
 
+        // guardar historial de reagendado
+        turno.estado = "reagendado";
 
-        turno.fecha = fecha;
+        turno.reagendadoPara = {
+
+            fecha: fechaDate,
+            hora
+
+        };
+
+        // actualizar nueva fecha activa
+        turno.fecha = fechaDate;
         turno.hora = hora;
 
         await turno.save();
@@ -354,16 +387,17 @@ const rescheduleTurno = async (req, res, next) => {
 
                 user.email,
 
-                "Turno reagendado",
+                "Turno reagendado - Luz de Rubí",
 
                 `
                 <h2>Tu turno fue reagendado</h2>
 
-                <p>Nueva fecha: ${fecha}</p>
+                <p><strong>Nueva fecha:</strong> ${fecha}</p>
 
-                <p>Nueva hora: ${hora}</p>
+                <p><strong>Nueva hora:</strong> ${hora}</p>
 
-            `
+                <p>Si necesitas otro cambio puedes hacerlo desde tu panel.</p>
+                `
 
             );
 
