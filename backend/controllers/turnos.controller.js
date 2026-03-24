@@ -475,7 +475,15 @@ const updateTurnoStatus = async (req, res, next) => {
 
         turno.estado = estado;
 
-        turno.notasAdmin = notas || null;
+        if (notas) {
+
+            turno.notasAdmin = notas;
+
+        } else if (estado !== "no_asistio" && estado !== "cancelado") {
+
+            turno.notasAdmin = null;
+
+        }
 
         await turno.save();
 
