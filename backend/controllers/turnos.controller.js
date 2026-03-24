@@ -475,15 +475,7 @@ const updateTurnoStatus = async (req, res, next) => {
 
         turno.estado = estado;
 
-        if (notas) {
-
-            turno.notasAdmin = notas;
-
-        } else {
-
-            turno.notasAdmin = null;
-
-        }
+        turno.notasAdmin = notas || null;
 
         await turno.save();
 
