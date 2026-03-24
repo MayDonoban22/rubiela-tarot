@@ -7,10 +7,20 @@ const User = require('../models/User.model');
 // ADMIN
 const getAllTurnos = async (req, res, next) => {
     try {
+        const { estado } = req.query;
+
+        let filter = {};
+
+        if (estado) {
+
+            filter.estado = estado;
+
+        }
 
         const turnos = await Turno.find()
             .populate('user', 'name email role')
-            .populate('servicio', 'nombre precio');
+            .populate('servicio', 'nombre precio')
+            .sort({ fecha: 1, hora: 1 });
 
         res.json(turnos);
 
