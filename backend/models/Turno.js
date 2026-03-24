@@ -55,7 +55,8 @@ const turnoSchema = new mongoose.Schema({
 turnoSchema.index({
 
     fecha: 1,
-    hora: 1
+    hora: 1,
+    servicio: 1
 
 });
 
