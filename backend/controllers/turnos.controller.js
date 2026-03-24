@@ -425,9 +425,10 @@ const rescheduleTurno = async (req, res, next) => {
 
 // ADMIN
 const updateTurnoStatus = async (req, res, next) => {
+
     try {
 
-        const { estado } = req.body;
+        const { estado, notas } = req.body;
 
         if (!estado) {
 
@@ -440,12 +441,14 @@ const updateTurnoStatus = async (req, res, next) => {
         }
 
         const validateState = [
+
             "pendiente",
             "confirmado",
             "completado",
             "cancelado",
             "reagendado",
             "no_asistio"
+
         ];
 
         if (!validateState.includes(estado)) {
@@ -455,23 +458,34 @@ const updateTurnoStatus = async (req, res, next) => {
                 message: "Estado no válido"
 
             });
+
         }
 
+        const turno = await Turno.findById(req.params.id);
 
-        const turno = await Turno.findByIdAndUpdate(
+        if (!turno) {
 
-            req.params.id,
+            return res.status(404).json({
 
-            { estado },
+                message: "Turno no encontrado"
 
-            { new: true }
+            });
 
-        );
+        }
 
+        turno.estado = estado;
+
+        if (notas) {
+
+            turno.notasAdmin = notas;
+
+        }
+
+        await turno.save();
 
         res.json({
 
-            message: "Estado delconst { fecha, hora, servicio } = req.body; turno actualizado",
+            message: "Estado del turno actualizado",
 
             turno
 
@@ -482,6 +496,7 @@ const updateTurnoStatus = async (req, res, next) => {
         next(error);
 
     }
+
 };
 
 
