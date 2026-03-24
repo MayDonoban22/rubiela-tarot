@@ -157,12 +157,11 @@ const getMyTurnos = async (req, res, next) => {
     try {
 
         const turnos = await Turno.find({
-
             user: req.user.id
-
         })
             .populate('servicio')
-            .populate('user', 'name email');
+            .populate('user', 'name email')
+            .sort({ fecha: 1, hora: 1 });
 
         res.json(turnos);
 
