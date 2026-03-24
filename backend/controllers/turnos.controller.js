@@ -479,6 +479,10 @@ const updateTurnoStatus = async (req, res, next) => {
 
             turno.notasAdmin = notas;
 
+        } else {
+
+            turno.notasAdmin = null;
+
         }
 
         await turno.save();
