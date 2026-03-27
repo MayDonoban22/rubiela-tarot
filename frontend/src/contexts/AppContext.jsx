@@ -68,5 +68,4 @@ export function AppProvider({ children }) {
   );
 }
 
-// 👉 ESTA LÍNEA FALTABA
 export default AppContext;
