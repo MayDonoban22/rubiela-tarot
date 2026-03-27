@@ -50,28 +50,33 @@ function Agenda() {
   });
 
   const selectedService = watch("service");
-  const _selectedDate = watch("date");
+  const selectedDate = watch("date");
   const selectedHour = watch("hour");
 
-  /* =========================
-        LOAD SERVICES
-  ========================= */
+  /* ==========================
+        LOAD SERVICES API
+  ========================== */
 
   useEffect(() => {
     const loadServices = async () => {
-      const data = await getServices();
+      try {
+        const data = await getServices();
 
-      setServices(data);
-
-      setLoading(false);
+        setServices(data);
+      } catch (error) {
+        console.error(error);
+        setApiError("No se pudieron cargar servicios");
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadServices();
   }, []);
 
-  /* =========================
-        SUBMIT
-  ========================= */
+  /* ==========================
+        CREATE TURNO
+  ========================== */
 
   const onSubmit = async (data) => {
     try {
@@ -81,8 +86,8 @@ function Agenda() {
         service: data.service,
         date: data.date,
         hour: data.hour,
-        userId: user?.id,
         name: data.name,
+        userId: user?.id,
       };
 
       await createTurno(turno, token);
@@ -98,127 +103,151 @@ function Agenda() {
   }
 
   return (
-    <section className="w-full px-4 sm:px-6 lg:px-[65px] pt-[57px] relative">
+    <section className="w-full px-4 sm:px-6 lg:px-[65px] pt-[57px]">
       <h1 className="text-[32px] sm:text-[48px] lg:text-[60px] font-Abhaya text-[#7C7C70] text-center mb-8">
         Agenda tu Consulta
       </h1>
 
-      {apiError && <p className="text-red-500 text-center">{apiError}</p>}
+      {apiError && <p className="text-red-500 text-center mb-4">{apiError}</p>}
 
-      <div className="relative max-w-[1000px] mx-auto mb-12">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary to-secondary opacity-30 rounded-md" />
+      <div className="max-w-[1000px] mx-auto mb-12">
+        <h3 className="text-[24px] font-Abhaya text-[#9E874D] mb-6">
+          Selecciona tu Servicio
+        </h3>
 
-        <div className="relative z-10 p-6 sm:p-8">
-          <h3 className="text-[24px] sm:text-[30px] font-Abhaya text-[#9E874D] mb-6">
-            Selecciona tu Servicio
-          </h3>
-
-          <div className="flex flex-wrap lg:flex-nowrap justify-center gap-4 mb-8">
-            {services.map((service) => (
-              <button
-                key={service._id}
-                type="button"
-                onClick={() => setValue("service", service.title)}
-                className={`cursor-pointer w-[90%] sm:w-[280px] md:w-[300px] lg:w-[320px] h-[120px] sm:h-[140px] rounded-xl p-4 text-left border transition
+        <div className="flex flex-wrap justify-center gap-4">
+          {services.map((service) => (
+            <button
+              key={service._id}
+              type="button"
+              onClick={() => setValue("service", service.title)}
+              className={`w-[280px] h-[130px] rounded-xl p-4 border transition
 
 ${
   selectedService === service.title
     ? "border-goldLight bg-[#6C82B5]"
-    : "bg-[#526B9F] border-transparent hover:border-goldLight"
+    : "bg-[#526B9F]"
 }
 
 `}
+            >
+              <h3 className="text-[20px] text-goldLight">{service.title}</h3>
+
+              <p className="text-white">{service.price}</p>
+
+              <p className="text-white">{service.duration}</p>
+            </button>
+          ))}
+        </div>
+
+        {errors.service && (
+          <p className="text-red-500 text-center mt-2">
+            {errors.service.message}
+          </p>
+        )}
+      </div>
+
+      <div className="max-w-[1000px] mx-auto mb-10 flex gap-10">
+        <div className="flex-1">
+          <div className="flex gap-2 mb-2">
+            <FaCalendarAlt />
+
+            <h2>Fecha</h2>
+          </div>
+
+          <input
+            type="date"
+            {...register("date")}
+            className="w-full h-[36px] border rounded px-3"
+          />
+
+          {errors.date && <p className="text-red-500">{errors.date.message}</p>}
+        </div>
+
+        <div className="flex-1">
+          <div className="flex gap-2 mb-2">
+            <FaClock />
+
+            <h2>Hora</h2>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            {hours.map((hour) => (
+              <button
+                key={hour}
+                type="button"
+                onClick={() => setValue("hour", hour)}
+                className={`h-[36px] border rounded
+
+${selectedHour === hour ? "bg-[#C3B08B]" : "bg-gray-100"}
+
+`}
               >
-                <h3 className="text-[18px] sm:text-[20px] font-Abhaya text-goldLight mb-1">
-                  {service.title}
-                </h3>
-
-                <p className="text-white font-inter text-sm">{service.price}</p>
-
-                <p className="text-white font-inter text-sm">
-                  {service.duration}
-                </p>
+                {hour}
               </button>
             ))}
           </div>
 
-          {errors.service && (
-            <p className="text-red-500 text-sm text-center">
-              {errors.service.message}
-            </p>
-          )}
-
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <FaCalendarAlt className="text-[#9E874D]" />
-
-                <h2 className="text-[20px] sm:text-[24px] font-Abhaya text-[#9E874D]">
-                  Fecha
-                </h2>
-              </div>
-
-              <input
-                type="date"
-                {...register("date")}
-                className="w-full h-[36px] bg-tertiary border border-goldLight rounded-md px-3"
-              />
-
-              {errors.date && (
-                <p className="text-red-500 text-sm">{errors.date.message}</p>
-              )}
-            </div>
-
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <FaClock className="text-[#9E874D]" />
-
-                <h2 className="text-[20px] sm:text-[24px] font-Abhaya text-[#9E874D]">
-                  Hora
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2">
-                {hours.map((hour) => (
-                  <button
-                    key={hour}
-                    type="button"
-                    onClick={() => setValue("hour", hour)}
-                    className={`w-full h-[36px] rounded-md border
-
-${selectedHour === hour ? "bg-[#C3B08B]" : "bg-tertiary"}
-
-`}
-                  >
-                    {hour}
-                  </button>
-                ))}
-              </div>
-
-              {errors.hour && (
-                <p className="text-red-500 text-sm">{errors.hour.message}</p>
-              )}
-            </div>
-          </div>
+          {errors.hour && <p className="text-red-500">{errors.hour.message}</p>}
         </div>
       </div>
 
+      {/* RESUMEN */}
+
+      {selectedService && selectedDate && selectedHour && (
+        <div className="max-w-[1000px] mx-auto bg-[#F7F5EB] border rounded p-6 mb-8">
+          <h3 className="text-[22px] mb-3">Resumen de tu cita</h3>
+
+          <p>
+            Servicio:
+            <strong>{selectedService}</strong>
+          </p>
+
+          <p>
+            Fecha:
+            <strong>{selectedDate}</strong>
+          </p>
+
+          <p>
+            Hora:
+            <strong>{selectedHour}</strong>
+          </p>
+        </div>
+      )}
+
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-w-[1000px] mx-auto p-8"
+        className="max-w-[1000px] mx-auto space-y-4"
       >
-        <button
-          type="submit"
-          className="w-full h-[42px] bg-goldLight text-tertiary rounded-md"
-        >
-          Confirmar Pago
+        <input
+          placeholder="Nombre"
+          {...register("name")}
+          className="w-full h-[36px] border rounded px-3"
+        />
+
+        {errors.name && <p className="text-red-500">{errors.name.message}</p>}
+
+        <button type="submit" className="w-full h-[42px] bg-goldLight rounded">
+          Confirmar Reserva
         </button>
       </form>
 
       {showConfirmation && (
-        <div className="fixed inset-0 bg-white/60 flex items-center justify-center">
+        <div className="fixed inset-0 bg-white/70 flex items-center justify-center">
           <div className="bg-white p-10 rounded-xl text-center">
             <h2>Tu cita fue confirmada</h2>
+
+            <p>
+              {selectedService}
+
+              <br />
+
+              {selectedDate}
+
+              <br />
+
+              {selectedHour}
+            </p>
 
             <button onClick={() => setShowConfirmation(false)}>Cerrar</button>
           </div>
