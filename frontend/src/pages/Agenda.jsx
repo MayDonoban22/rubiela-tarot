@@ -64,7 +64,7 @@ function Agenda() {
 
         setServices(data);
       } catch (error) {
-        console.error(error);
+        console.error("Error loading services:", error);
         setApiError("No se pudieron cargar servicios");
       } finally {
         setLoading(false);
