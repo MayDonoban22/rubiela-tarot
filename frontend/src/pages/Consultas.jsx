@@ -31,7 +31,7 @@ function Consultas() {
 
         setServices(data);
       } catch (error) {
-        console.error(error);
+        console.error("Error cargando servicios:", error);
 
         setError("No se pudieron cargar los servicios");
       }
