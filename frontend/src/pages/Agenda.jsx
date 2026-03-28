@@ -10,21 +10,13 @@ import { createTurno } from "../services/turnos";
 import AppContext from "../contexts/AppContext";
 import { getToken } from "../utils/token";
 
-const hours = [
-  "09:00",
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-];
+const [hours, setHours] = useState([]);
 
 function Agenda() {
   const { user } = useContext(AppContext);
 
   const [services, setServices] = useState([]);
+  const [hoursLoading, setHoursLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -73,6 +65,26 @@ function Agenda() {
 
     loadServices();
   }, []);
+
+  useEffect(() => {
+    if (!selectedDate) return;
+
+    const loadHours = async () => {
+      try {
+        setHoursLoading(true);
+
+        const data = await getAvailableHours(selectedDate);
+
+        setHours(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setHoursLoading(false);
+      }
+    };
+
+    loadHours();
+  }, [selectedDate]);
 
   /* ==========================
         CREATE TURNO
