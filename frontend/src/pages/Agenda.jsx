@@ -91,7 +91,7 @@ function Agenda() {
     };
 
     loadHours();
-  }, [selectedDate]);
+  }, [selectedDate, setValue]);
 
   /* ==========================
         CREATE TURNO
