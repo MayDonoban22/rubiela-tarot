@@ -6,16 +6,16 @@ import { FaCalendarAlt, FaClock } from "react-icons/fa";
 import { agendaSchema } from "../schemas";
 import { getServices } from "../services/services";
 import { createTurno } from "../services/turnos";
+import { getAvailableHours } from "../services/availability";
 
 import AppContext from "../contexts/AppContext";
 import { getToken } from "../utils/token";
-
-const [hours, setHours] = useState([]);
 
 function Agenda() {
   const { user } = useContext(AppContext);
 
   const [services, setServices] = useState([]);
+  const [hours, setHours] = useState([]);
   const [hoursLoading, setHoursLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
@@ -183,22 +183,26 @@ ${
             <h2>Hora</h2>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
-            {hours.map((hour) => (
-              <button
-                key={hour}
-                type="button"
-                onClick={() => setValue("hour", hour)}
-                className={`h-[36px] border rounded
+          {hoursLoading ? (
+            <p className="text-gray-500">Cargando horarios...</p>
+          ) : (
+            <div className="grid grid-cols-4 gap-2">
+              {hours.map((hour) => (
+                <button
+                  key={hour}
+                  type="button"
+                  onClick={() => setValue("hour", hour)}
+                  className={`h-[36px] border rounded
 
 ${selectedHour === hour ? "bg-[#C3B08B]" : "bg-gray-100"}
 
 `}
-              >
-                {hour}
-              </button>
-            ))}
-          </div>
+                >
+                  {hour}
+                </button>
+              ))}
+            </div>
+          )}
 
           {errors.hour && <p className="text-red-500">{errors.hour.message}</p>}
         </div>
