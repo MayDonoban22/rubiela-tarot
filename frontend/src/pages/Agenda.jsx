@@ -78,6 +78,11 @@ function Agenda() {
         const data = await getAvailableHours(selectedDate);
 
         setHours(data);
+        if (data.length === 0) {
+          setApiError("No hay horarios disponibles");
+        } else {
+          setApiError(null);
+        }
       } catch (error) {
         console.error(error);
       } finally {
