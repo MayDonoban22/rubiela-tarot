@@ -2,6 +2,7 @@ const Turno = require('../models/Turno');
 const Service = require('../models/Service');
 const sendEmail = require('../utils/sendEmail');
 const User = require('../models/User.model');
+const availabilityService = require('../services/availability.service');
 
 
 // ADMIN
@@ -512,6 +513,37 @@ const updateTurnoStatus = async (req, res, next) => {
 
 };
 
+const getAvailableHours = async (req, res, next) => {
+
+    try {
+
+        const { date } = req.query;
+
+        if (!date) {
+
+            return res.status(400).json({
+
+                message: "Date required"
+
+            });
+
+        }
+
+        const hours =
+
+            await availabilityService.getAvailableHours(date);
+
+        res.json(hours);
+
+    }
+    catch (error) {
+
+        next(error);
+
+    }
+
+};
+
 
 module.exports = {
 
@@ -520,5 +552,6 @@ module.exports = {
     getMyTurnos,
     updateTurnoStatus,
     cancelTurno,
-    rescheduleTurno
+    rescheduleTurno,
+    getAvailableHours
 };
