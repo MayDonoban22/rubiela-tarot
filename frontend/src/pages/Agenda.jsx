@@ -69,6 +69,8 @@ function Agenda() {
   useEffect(() => {
     if (!selectedDate) return;
 
+    setValue("hour", "");
+
     const loadHours = async () => {
       try {
         setHoursLoading(true);
