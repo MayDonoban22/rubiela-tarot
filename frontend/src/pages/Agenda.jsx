@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FaCalendarAlt, FaClock } from "react-icons/fa";
@@ -8,12 +8,9 @@ import { getServices } from "../services/services";
 import { createTurno } from "../services/turnos";
 import { getAvailableHours } from "../services/availability";
 
-import AppContext from "../contexts/AppContext";
 import { getToken } from "../utils/token";
 
 function Agenda() {
-  const { user } = useContext(AppContext);
-
   const [services, setServices] = useState([]);
   const [hours, setHours] = useState([]);
   const [hoursLoading, setHoursLoading] = useState(false);
@@ -36,19 +33,17 @@ function Agenda() {
       date: "",
       hour: "",
       name: "",
-      cardNumber: "",
-      expiry: "",
-      cvv: "",
     },
   });
 
   const selectedService = watch("service");
+  const selectedServiceName = watch("serviceName");
   const selectedDate = watch("date");
   const selectedHour = watch("hour");
 
   /* ==========================
-        LOAD SERVICES API
-  ========================== */
+LOAD SERVICES
+========================== */
 
   useEffect(() => {
     const loadServices = async () => {
@@ -57,7 +52,7 @@ function Agenda() {
 
         setServices(data);
       } catch (error) {
-        console.error("Error loading services:", error);
+        console.error("Error cargando servicios:", error);
         setApiError("No se pudieron cargar servicios");
       } finally {
         setLoading(false);
@@ -66,6 +61,10 @@ function Agenda() {
 
     loadServices();
   }, []);
+
+  /* ==========================
+LOAD HOURS
+========================== */
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -79,13 +78,15 @@ function Agenda() {
         const data = await getAvailableHours(selectedDate);
 
         setHours(data);
+
         if (data.length === 0) {
           setApiError("No hay horarios disponibles");
         } else {
           setApiError(null);
         }
       } catch (error) {
-        console.error(error);
+        console.error("Error cargando horarios:", error);
+        setApiError("Error cargando horarios");
       } finally {
         setHoursLoading(false);
       }
@@ -95,19 +96,17 @@ function Agenda() {
   }, [selectedDate, setValue]);
 
   /* ==========================
-        CREATE TURNO
-  ========================== */
+CREATE TURNO
+========================== */
 
   const onSubmit = async (data) => {
     try {
       const token = getToken();
 
       const turno = {
-        service: data.service,
-        date: data.date,
-        hour: data.hour,
-        name: data.name,
-        userId: user?.id,
+        servicio: data.service,
+        fecha: data.date,
+        hora: data.hour,
       };
 
       await createTurno(turno, token);
@@ -117,6 +116,12 @@ function Agenda() {
       setApiError(error.message);
     }
   };
+
+  /* ==========================
+TODAY DATE BLOCKER
+========================== */
+
+  const today = new Date().toISOString().split("T")[0];
 
   if (loading) {
     return <div className="text-center mt-20">Cargando servicios...</div>;
@@ -147,7 +152,7 @@ function Agenda() {
               className={`w-[280px] h-[130px] rounded-xl p-4 border transition
 
 ${
-  selectedService === service.title
+  selectedService === service._id
     ? "border-goldLight bg-[#6C82B5]"
     : "bg-[#526B9F]"
 }
@@ -162,12 +167,6 @@ ${
             </button>
           ))}
         </div>
-
-        {errors.service && (
-          <p className="text-red-500 text-center mt-2">
-            {errors.service.message}
-          </p>
-        )}
       </div>
 
       <div className="max-w-[1000px] mx-auto mb-10 flex gap-10">
@@ -180,6 +179,7 @@ ${
 
           <input
             type="date"
+            min={today}
             {...register("date")}
             className="w-full h-[36px] border rounded px-3"
           />
@@ -219,15 +219,13 @@ ${selectedHour === hour ? "bg-[#C3B08B]" : "bg-gray-100"}
         </div>
       </div>
 
-      {/* RESUMEN */}
-
       {selectedService && selectedDate && selectedHour && (
         <div className="max-w-[1000px] mx-auto bg-[#F7F5EB] border rounded p-6 mb-8">
           <h3 className="text-[22px] mb-3">Resumen de tu cita</h3>
 
           <p>
             Servicio:
-            <strong>{selectedService}</strong>
+            <strong>{selectedServiceName}</strong>
           </p>
 
           <p>
@@ -254,7 +252,11 @@ ${selectedHour === hour ? "bg-[#C3B08B]" : "bg-gray-100"}
 
         {errors.name && <p className="text-red-500">{errors.name.message}</p>}
 
-        <button type="submit" className="w-full h-[42px] bg-goldLight rounded">
+        <button
+          type="submit"
+          disabled={!selectedService || !selectedDate || !selectedHour}
+          className="w-full h-[42px] bg-goldLight rounded disabled:bg-gray-300"
+        >
           Confirmar Reserva
         </button>
       </form>
@@ -265,7 +267,7 @@ ${selectedHour === hour ? "bg-[#C3B08B]" : "bg-gray-100"}
             <h2>Tu cita fue confirmada</h2>
 
             <p>
-              {selectedService}
+              {selectedServiceName}
 
               <br />
 
