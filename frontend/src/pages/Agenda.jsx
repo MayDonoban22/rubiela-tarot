@@ -32,6 +32,7 @@ function Agenda() {
 
     defaultValues: {
       service: "",
+      serviceName: "",
       date: "",
       hour: "",
       name: "",
@@ -139,7 +140,10 @@ function Agenda() {
             <button
               key={service._id}
               type="button"
-              onClick={() => setValue("service", service.title)}
+              onClick={() => {
+                setValue("service", service._id);
+                setValue("serviceName", service.title);
+              }}
               className={`w-[280px] h-[130px] rounded-xl p-4 border transition
 
 ${
