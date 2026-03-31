@@ -41,9 +41,7 @@ function Agenda() {
   const selectedDate = watch("date");
   const selectedHour = watch("hour");
 
-  /* ==========================
-LOAD SERVICES
-========================== */
+  /* LOAD SERVICES */
 
   useEffect(() => {
     const loadServices = async () => {
@@ -53,6 +51,7 @@ LOAD SERVICES
         setServices(data);
       } catch (error) {
         console.error("Error cargando servicios:", error);
+
         setApiError("No se pudieron cargar servicios");
       } finally {
         setLoading(false);
@@ -62,9 +61,7 @@ LOAD SERVICES
     loadServices();
   }, []);
 
-  /* ==========================
-LOAD HOURS
-========================== */
+  /* LOAD HOURS */
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -86,6 +83,7 @@ LOAD HOURS
         }
       } catch (error) {
         console.error("Error cargando horarios:", error);
+
         setApiError("Error cargando horarios");
       } finally {
         setHoursLoading(false);
@@ -95,9 +93,7 @@ LOAD HOURS
     loadHours();
   }, [selectedDate, setValue]);
 
-  /* ==========================
-CREATE TURNO
-========================== */
+  /* CREATE TURNO */
 
   const onSubmit = async (data) => {
     try {
@@ -113,13 +109,13 @@ CREATE TURNO
 
       setShowConfirmation(true);
     } catch (error) {
-      setApiError(error.message);
+      console.error("Error creando turno:", error);
+
+      setApiError(error?.message || "Error creando turno");
     }
   };
 
-  /* ==========================
-TODAY DATE BLOCKER
-========================== */
+  /* TODAY BLOCK */
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -147,7 +143,10 @@ TODAY DATE BLOCKER
               type="button"
               onClick={() => {
                 setValue("service", service._id);
+
                 setValue("serviceName", service.title);
+
+                setApiError(null);
               }}
               className={`w-[280px] h-[130px] rounded-xl p-4 border transition
 
