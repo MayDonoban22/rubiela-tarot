@@ -1,18 +1,30 @@
-# Logs
+# dependencies
+node_modules
+
+# env
+.env
+.env.local
+
+# logs
 logs
 *.log
-npm-debug.log*
-
-# Directorio de dependencias
-/node_modules
-
-# Directorio de cache npm opcional
-.npm
-
-# Archivos de sistema y carpetas de ajustes IDE
-.DS_Store
-.idea
-.vscode
-.env
 error.log
 request.log
+
+# cache
+.npm
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editors
+.idea
+.vscode
+
+# build
+dist
+build
+
+# testing
+coverage

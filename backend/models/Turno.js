@@ -48,6 +48,42 @@ const turnoSchema = new mongoose.Schema({
     reagendadoPara: {
         fecha: Date,
         hora: String
+    },
+
+    paymentStatus: {
+
+        type: String,
+
+        enum: [
+
+            "PENDING",
+            "PAID",
+            "FAILED"
+
+        ],
+
+        default: "PENDING"
+
+    },
+
+    paymentSessionId: {
+
+        type: String
+
+    },
+
+    paymentAmount: {
+
+        type: Number
+
+    },
+
+    paymentCurrency: {
+
+        type: String,
+
+        default: "USD"
+
     }
 
 }, { timestamps: true });
