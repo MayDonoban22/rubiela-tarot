@@ -36,9 +36,9 @@ const createCheckoutSession = async (turno, service) => {
 
         ],
 
-        success_url: `${process.env.FRONTEND_URL}/payment-success`,
+        success_url: `${process.env.CLIENT_URL}/payment-success`,
 
-        cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
+        cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
 
         metadata: {
 
