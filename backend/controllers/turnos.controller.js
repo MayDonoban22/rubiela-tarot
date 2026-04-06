@@ -144,6 +144,7 @@ const createTurno = async (req, res, next) => {
 
             message: 'Turno creado correctamente',
             turno,
+            paymentStatus: turno.paymentStatus
 
         });
 
