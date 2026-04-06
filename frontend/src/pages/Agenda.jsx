@@ -7,38 +7,55 @@ import { agendaSchema } from "../schemas";
 import { getServices } from "../services/services";
 import { createTurno } from "../services/turnos";
 import { getAvailableHours } from "../services/availability";
+import { createPaymentSession } from "../services/payment"; // NEW
 
 import { getToken } from "../utils/token";
 
 function Agenda() {
   const [services, setServices] = useState([]);
+
   const [hours, setHours] = useState([]);
+
   const [hoursLoading, setHoursLoading] = useState(false);
+
   const [loading, setLoading] = useState(true);
+
   const [apiError, setApiError] = useState(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const [processing, setProcessing] = useState(false); // NEW
 
   const {
     register,
+
     handleSubmit,
+
     setValue,
+
     watch,
+
     formState: { errors },
   } = useForm({
     resolver: yupResolver(agendaSchema),
 
     defaultValues: {
       service: "",
+
       serviceName: "",
+
       date: "",
+
       hour: "",
+
       name: "",
     },
   });
 
   const selectedService = watch("service");
+
   const selectedServiceName = watch("serviceName");
+
   const selectedDate = watch("date");
+
   const selectedHour = watch("hour");
 
   /* LOAD SERVICES */
@@ -93,25 +110,45 @@ function Agenda() {
     loadHours();
   }, [selectedDate, setValue]);
 
-  /* CREATE TURNO */
+  /* CREATE TURNO + PAYMENT */
 
   const onSubmit = async (data) => {
     try {
+      setProcessing(true);
+
       const token = getToken();
 
-      const turno = {
+      const turnoData = {
         servicio: data.service,
+
         fecha: data.date,
+
         hora: data.hour,
       };
 
-      await createTurno(turno, token);
+      const turnoResponse = await createTurno(
+        turnoData,
 
-      setShowConfirmation(true);
+        token,
+      );
+
+      const turnoId = turnoResponse.turno._id;
+
+      const payment = await createPaymentSession(
+        turnoId,
+
+        token,
+      );
+
+      /* REDIRECT STRIPE */
+
+      window.location.href = payment.url;
     } catch (error) {
-      console.error("Error creando turno:", error);
+      console.error("Error proceso pago:", error);
 
-      setApiError(error?.message || "Error creando turno");
+      setApiError(error?.message || "Error iniciando pago");
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -160,7 +197,7 @@ ${
             >
               <h3 className="text-[20px] text-goldLight">{service.title}</h3>
 
-              <p className="text-white">{service.price}</p>
+              <p className="text-white">${service.price}</p>
 
               <p className="text-white">{service.duration}</p>
             </button>
@@ -253,34 +290,14 @@ ${selectedHour === hour ? "bg-[#C3B08B]" : "bg-gray-100"}
 
         <button
           type="submit"
-          disabled={!selectedService || !selectedDate || !selectedHour}
+          disabled={
+            !selectedService || !selectedDate || !selectedHour || processing
+          }
           className="w-full h-[42px] bg-goldLight rounded disabled:bg-gray-300"
         >
-          Confirmar Reserva
+          {processing ? "Redirigiendo al pago..." : "Proceder al pago"}
         </button>
       </form>
-
-      {showConfirmation && (
-        <div className="fixed inset-0 bg-white/70 flex items-center justify-center">
-          <div className="bg-white p-10 rounded-xl text-center">
-            <h2>Tu cita fue confirmada</h2>
-
-            <p>
-              {selectedServiceName}
-
-              <br />
-
-              {selectedDate}
-
-              <br />
-
-              {selectedHour}
-            </p>
-
-            <button onClick={() => setShowConfirmation(false)}>Cerrar</button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
