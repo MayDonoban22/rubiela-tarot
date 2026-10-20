@@ -57,7 +57,7 @@ const turnoSchema = new mongoose.Schema({
         enum: [
 
             "PENDING",
-            "PAIDe",
+            "PAID",
             "FAILED"
 
         ],
