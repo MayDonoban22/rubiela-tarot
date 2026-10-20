@@ -4,7 +4,7 @@ const router = express.Router();
 
 const { createPaymentSession } = require("../controllers/paymentController");
 
-const auth = require("../middlewares/auth");
+const auth = require("../middlewares/auth.middleware");
 
 router.post(
 

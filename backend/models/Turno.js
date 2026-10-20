@@ -72,6 +72,11 @@ const turnoSchema = new mongoose.Schema({
 
     },
 
+    paymentExpiresAt: {
+        type: Date,
+        default: null
+    },
+
     paymentAmount: {
 
         type: Number

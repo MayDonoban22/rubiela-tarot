@@ -27,6 +27,8 @@ const horoscopeRoutes = require('./routes/horoscope.routes');
 
 const adminRoutes = require('./routes/admin.routes');
 
+const paymentRoutes = require('./routes/paymentRoutes');
+
 const stripeWebhookRoutes = require("./routes/stripeWebhookRoutes");
 
 
@@ -72,6 +74,8 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/horoscope', horoscopeRoutes);
 
 app.use('/api/admin', adminRoutes);
+
+app.use('/api/payments', paymentRoutes);
 
 
 /* HEALTH */
