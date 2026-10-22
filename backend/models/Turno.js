@@ -32,7 +32,8 @@ const turnoSchema = new mongoose.Schema({
             'completado',
             'cancelado',
             'reagendado',
-            'no_asistio'
+            'no_asistio',
+            'expiradoo'
         ],
         default: 'pendiente'
     },
@@ -76,6 +77,7 @@ const turnoSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
+
 
     paymentAmount: {
 
