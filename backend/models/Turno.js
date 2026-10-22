@@ -33,7 +33,7 @@ const turnoSchema = new mongoose.Schema({
             'cancelado',
             'reagendado',
             'no_asistio',
-            'expiradoo'
+            'expirado'
         ],
         default: 'pendiente'
     },
