@@ -70,15 +70,23 @@ const createTurno = async (req, res, next) => {
         }
 
 
-        const turno = await Turno.create({
+        // Tiempo máximo para completar el pago: 30 minutos
+        const PAYMENT_TIMEOUT_MINUTES = 30;
 
-            fecha,
+        const paymentExpiresAt = new Date(
+            Date.now() + PAYMENT_TIMEOUT_MINUTES * 60 * 1000
+        );
+
+        // Crear reserva pendiente de pago
+        const turno = await Turno.create({
+            fecha: fechaDate,
             hora,
             servicio,
-            user: req.user.id
-
+            user: req.user.id,
+            estado: 'pendiente',
+            paymentStatus: 'PENDING',
+            paymentExpiresAt
         });
-
         // Enviar email de confirmación
         // obtener usuario
 
