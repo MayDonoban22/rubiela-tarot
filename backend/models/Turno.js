@@ -95,12 +95,25 @@ const turnoSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-turnoSchema.index({
-
-    fecha: 1,
-    hora: 1,
-    servicio: 1
-
-});
+turnoSchema.index(
+    {
+        fecha: 1,
+        hora: 1
+    },
+    {
+        unique: true,
+        partialFilterExpression: {
+            estado: {
+                $in: [
+                    'pendiente',
+                    'confirmado',
+                    'completado',
+                    'reagendado',
+                    'no_asistio'
+                ]
+            }
+        }
+    }
+);
 
 module.exports = mongoose.model('Turno', turnoSchema);
