@@ -55,20 +55,22 @@ const createTurno = async (req, res, next) => {
         }
 
 
-        // validar horario ocupado
+        // Verificar disponibilidad del horario
+        // La administradora solo puede atender a un cliente a la vez.
+
         const turnoExistente = await Turno.findOne({
             fecha: fechaDate,
             hora,
-            servicio,
-            estado: { $ne: 'cancelado' }
+            estado: {
+                $nin: ['cancelado', 'expirado']
+            }
         });
 
         if (turnoExistente) {
-            return res.status(400).json({
-                message: 'Este horario ya está ocupado'
+            return res.status(409).json({
+                message: 'Este horario ya está reservado. Selecciona otro horario disponible.'
             });
         }
-
 
         // Tiempo máximo para completar el pago: 30 minutos
         const PAYMENT_TIMEOUT_MINUTES = 30;
