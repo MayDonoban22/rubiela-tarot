@@ -159,7 +159,19 @@ const createTurno = async (req, res, next) => {
         });
 
     } catch (error) {
+
+        // MongoDB detectó un horario duplicado
+        if (error.code === 11000) {
+
+            return res.status(409).json({
+                message: "Este horario acaba de ser reservado por otro cliente. Por favor, selecciona otro horario."
+            });
+
+        }
+
+        // Otros errores se envían al middleware global
         next(error);
+
     }
 };
 
