@@ -96,24 +96,21 @@ const turnoSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 turnoSchema.index(
+    { fecha: 1, hora: 1 },
     {
-        fecha: 1,
-        hora: 1
-    },
-    {
+        name: "fecha_hora_reserva_activa_unique",
         unique: true,
         partialFilterExpression: {
             estado: {
                 $in: [
-                    'pendiente',
-                    'confirmado',
-                    'completado',
-                    'reagendado',
-                    'no_asistio'
+                    "pendiente",
+                    "confirmado",
+                    "completado",
+                    "reagendado",
+                    "no_asistio"
                 ]
             }
         }
     }
 );
-
 module.exports = mongoose.model('Turno', turnoSchema);
