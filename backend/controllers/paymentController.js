@@ -22,6 +22,13 @@ const createPaymentSession = async (req, res) => {
 
         }
 
+        // Verificar que la reserva pertenece al usuario autenticado
+        if (turno.user.toString() !== req.user.id.toString()) {
+            return res.status(403).json({
+                message: "No tienes autorización para pagar esta reserva"
+            });
+        }
+
         const service = await Service.findById(turno.servicio);
 
         const session = await createCheckoutSession(turno, service);
