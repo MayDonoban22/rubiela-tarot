@@ -36,20 +36,43 @@ const stripeWebhook = async (req, res) => {
 
         const session = event.data.object;
 
-        const turnoId = session.metadata.turnoId;
+        // Confirmar que Stripe registra el pago como completado
+        if (session.payment_status !== "paid") {
+            return res.json({ received: true });
+        }
+
+        const turnoId = session.metadata?.turnoId;
+
+        if (!turnoId) {
+            return res.status(400).json({
+                message: "Turno no identificado"
+            });
+        }
 
         const turno = await Turno.findById(turnoId);
 
-        if (turno) {
-
-            turno.paymentStatus = "PAID";
-
-            turno.estado = "confirmado";
-
-            await turno.save();
-
+        if (!turno) {
+            return res.status(404).json({
+                message: "Turno no encontrado"
+            });
         }
 
+        // Verificar que la sesión corresponde a la reserva
+        if (turno.paymentSessionId !== session.id) {
+            return res.status(400).json({
+                message: "La sesión de pago no corresponde al turno"
+            });
+        }
+
+        // Evitar procesar dos veces el mismo pago
+        if (turno.paymentStatus === "PAID") {
+            return res.json({ received: true });
+        }
+
+        turno.paymentStatus = "PAID";
+        turno.estado = "confirmado";
+
+        await turno.save();
     }
 
     res.json({
