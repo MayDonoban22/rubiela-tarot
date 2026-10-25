@@ -29,6 +29,20 @@ const createPaymentSession = async (req, res) => {
             });
         }
 
+        // Verificar si la reserva ya fue pagada
+        if (turno.paymentStatus === "PAID") {
+            return res.status(409).json({
+                message: "Esta reserva ya fue pagada"
+            });
+        }
+
+        // Verificar que la reserva siga pendiente
+        if (turno.estado !== "pendiente") {
+            return res.status(409).json({
+                message: "Esta reserva no está disponible para pago"
+            });
+        }
+
         const service = await Service.findById(turno.servicio);
 
         const session = await createCheckoutSession(turno, service);
