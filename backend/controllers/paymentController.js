@@ -43,6 +43,20 @@ const createPaymentSession = async (req, res) => {
             });
         }
 
+        // Comprobar que la reserva tiene un plazo de pago
+        if (!turno.paymentExpiresAt) {
+            return res.status(409).json({
+                message: "Esta reserva no tiene un plazo de pago válido"
+            });
+        }
+
+        // Comprobar si terminó el plazo
+        if (new Date(turno.paymentExpiresAt).getTime() <= Date.now()) {
+            return res.status(409).json({
+                message: "El plazo de pago ha terminado. Debes solicitar una nueva reserva."
+            });
+        }
+
         const service = await Service.findById(turno.servicio);
 
         const session = await createCheckoutSession(turno, service);
