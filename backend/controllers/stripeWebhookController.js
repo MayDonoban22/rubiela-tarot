@@ -75,6 +75,38 @@ const stripeWebhook = async (req, res) => {
         await turno.save();
     }
 
+    // Gestionar sesiones de Stripe que han expirado
+    if (event.type === "checkout.session.expired") {
+
+        const session = event.data.object;
+        const turnoId = session.metadata?.turnoId;
+
+        if (!turnoId) {
+            return res.json({ received: true });
+        }
+
+        const turno = await Turno.findOneAndUpdate(
+            {
+                _id: turnoId,
+                paymentSessionId: session.id,
+                paymentStatus: "PENDING",
+                estado: "pendiente"
+            },
+            {
+                $set: {
+                    estado: "expirado"
+                }
+            },
+            {
+                new: true
+            }
+        );
+
+        if (turno) {
+            console.log(`Reserva ${turnoId} expirada correctamente`);
+        }
+    }
+
     res.json({
 
         received: true
