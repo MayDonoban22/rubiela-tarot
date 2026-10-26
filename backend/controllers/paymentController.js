@@ -2,7 +2,10 @@ const Turno = require("../models/Turno");
 
 const Service = require("../models/Service");
 
-const { createCheckoutSession } = require("../services/stripeService");
+const {
+    createCheckoutSession,
+    getCheckoutSession
+} = require("../services/stripeService");
 
 const createPaymentSession = async (req, res) => {
 
