@@ -3,7 +3,9 @@ const Stripe = require("stripe");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const createCheckoutSession = async (turno, service) => {
+    const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
     const session = await stripe.checkout.sessions.create({
+        expires_at: expiresAt,
         payment_method_types: ["card"],
         mode: "payment",
         line_items: [
