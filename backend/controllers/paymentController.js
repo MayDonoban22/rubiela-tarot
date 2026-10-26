@@ -57,6 +57,12 @@ const createPaymentSession = async (req, res) => {
             });
         }
 
+        // Evitar crear otra sesión mientras exista una asociada
+        if (turno.paymentSessionId) {
+            return res.status(409).json({
+                message: "Esta reserva ya tiene una sesión de pago. Debemos verificar su estado antes de crear otra."
+            });
+        }
         const service = await Service.findById(turno.servicio);
 
         const session = await createCheckoutSession(turno, service);
