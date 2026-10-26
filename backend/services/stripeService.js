@@ -35,6 +35,12 @@ const createCheckoutSession = async (turno, service) => {
     return session;
 };
 
+// Consultar una sesión de pago existente en Stripe
+const getCheckoutSession = async (sessionId) => {
+    return stripe.checkout.sessions.retrieve(sessionId);
+};
+
 module.exports = {
-    createCheckoutSession
+    createCheckoutSession,
+    getCheckoutSession
 };
