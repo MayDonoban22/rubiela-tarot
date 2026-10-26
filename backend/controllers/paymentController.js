@@ -67,10 +67,14 @@ const createPaymentSession = async (req, res) => {
 
         const session = await createCheckoutSession(turno, service);
 
+        // Guardar la sesión de Stripe
         turno.paymentSessionId = session.id;
 
-        await turno.save();
+        // Convertir el vencimiento de Stripe a Date de JavaScript
+        turno.paymentExpiresAt = new Date(session.expires_at * 1000);
 
+        // Guardar los cambios en MongoDB
+        await turno.save();
         res.json({
 
             url: session.url
