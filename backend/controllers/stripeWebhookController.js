@@ -49,30 +49,30 @@ const stripeWebhook = async (req, res) => {
             });
         }
 
-        const turno = await Turno.findById(turnoId);
+        // Buscar la reserva y confirmar el pago en una operación atómica
+        const turno = await Turno.findOneAndUpdate(
+            {
+                _id: turnoId,
+                paymentSessionId: session.id,
+                paymentStatus: "PENDING",
+                estado: "pendiente"
+            },
+            {
+                $set: {
+                    paymentStatus: "PAID",
+                    estado: "confirmado"
+                }
+            },
+            {
+                new: true
+            }
+        );
 
         if (!turno) {
-            return res.status(404).json({
-                message: "Turno no encontrado"
-            });
+            console.warn(
+                `No se confirmó el turno ${turnoId}. Revisar su estado.`
+            );
         }
-
-        // Verificar que la sesión corresponde a la reserva
-        if (turno.paymentSessionId !== session.id) {
-            return res.status(400).json({
-                message: "La sesión de pago no corresponde al turno"
-            });
-        }
-
-        // Evitar procesar dos veces el mismo pago
-        if (turno.paymentStatus === "PAID") {
-            return res.json({ received: true });
-        }
-
-        turno.paymentStatus = "PAID";
-        turno.estado = "confirmado";
-
-        await turno.save();
     }
 
     // Gestionar sesiones de Stripe que han expirado
