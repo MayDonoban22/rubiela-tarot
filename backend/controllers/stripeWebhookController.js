@@ -1,3 +1,4 @@
+
 const Stripe = require("stripe");
 
 const Turno = require("../models/Turno");
@@ -12,16 +13,13 @@ const stripeWebhook = async (req, res) => {
 
     let event;
 
+    // PRIMER TRY/CATCH: verificar que el evento venga de Stripe
     try {
 
         event = stripe.webhooks.constructEvent(
-
             req.body,
-
             sig,
-
             endpointSecret
-
         );
 
     } catch (err) {
@@ -32,86 +30,102 @@ const stripeWebhook = async (req, res) => {
 
     }
 
-    if (event.type === "checkout.session.completed") {
+    // SEGUNDO TRY/CATCH: proteger las operaciones con MongoDB
+    try {
 
-        const session = event.data.object;
+        if (event.type === "checkout.session.completed") {
 
-        // Confirmar que Stripe registra el pago como completado
-        if (session.payment_status !== "paid") {
-            return res.json({ received: true });
-        }
+            const session = event.data.object;
 
-        const turnoId = session.metadata?.turnoId;
-
-        if (!turnoId) {
-            return res.status(400).json({
-                message: "Turno no identificado"
-            });
-        }
-
-        // Buscar la reserva y confirmar el pago en una operación atómica
-        const turno = await Turno.findOneAndUpdate(
-            {
-                _id: turnoId,
-                paymentSessionId: session.id,
-                paymentStatus: "PENDING",
-                estado: "pendiente"
-            },
-            {
-                $set: {
-                    paymentStatus: "PAID",
-                    estado: "confirmado"
-                }
-            },
-            {
-                new: true
+            // Confirmar que Stripe registra el pago como completado
+            if (session.payment_status !== "paid") {
+                return res.json({ received: true });
             }
-        );
 
-        if (!turno) {
-            console.warn(
-                `No se confirmó el turno ${turnoId}. Revisar su estado.`
+            const turnoId = session.metadata?.turnoId;
+
+            if (!turnoId) {
+                return res.status(400).json({
+                    message: "Turno no identificado"
+                });
+            }
+
+            // Confirmar el pago mediante una operación atómica
+            const turno = await Turno.findOneAndUpdate(
+                {
+                    _id: turnoId,
+                    paymentSessionId: session.id,
+                    paymentStatus: "PENDING",
+                    estado: "pendiente"
+                },
+                {
+                    $set: {
+                        paymentStatus: "PAID",
+                        estado: "confirmado"
+                    }
+                },
+                {
+                    new: true
+                }
             );
-        }
-    }
 
-    // Gestionar sesiones de Stripe que han expirado
-    if (event.type === "checkout.session.expired") {
-
-        const session = event.data.object;
-        const turnoId = session.metadata?.turnoId;
-
-        if (!turnoId) {
-            return res.json({ received: true });
-        }
-
-        const turno = await Turno.findOneAndUpdate(
-            {
-                _id: turnoId,
-                paymentSessionId: session.id,
-                paymentStatus: "PENDING",
-                estado: "pendiente"
-            },
-            {
-                $set: {
-                    estado: "expirado"
-                }
-            },
-            {
-                new: true
+            if (!turno) {
+                console.warn(
+                    `No se confirmó el turno ${turnoId}. Revisar su estado.`
+                );
             }
+        }
+
+        // Gestionar sesiones de Stripe que han expirado
+        if (event.type === "checkout.session.expired") {
+
+            const session = event.data.object;
+            const turnoId = session.metadata?.turnoId;
+
+            if (!turnoId) {
+                return res.json({ received: true });
+            }
+
+            const turno = await Turno.findOneAndUpdate(
+                {
+                    _id: turnoId,
+                    paymentSessionId: session.id,
+                    paymentStatus: "PENDING",
+                    estado: "pendiente"
+                },
+                {
+                    $set: {
+                        estado: "expirado"
+                    }
+                },
+                {
+                    new: true
+                }
+            );
+
+            if (turno) {
+                console.log(
+                    `Reserva ${turnoId} expirada correctamente`
+                );
+            }
+        }
+
+        return res.json({
+            received: true
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Error procesando webhook de Stripe:",
+            error
         );
 
-        if (turno) {
-            console.log(`Reserva ${turnoId} expirada correctamente`);
-        }
+        return res.status(500).json({
+            message: "Error procesando el evento de Stripe"
+        });
+
     }
-
-    res.json({
-
-        received: true
-
-    });
 
 };
 
