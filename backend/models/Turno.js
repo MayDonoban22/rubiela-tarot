@@ -79,6 +79,12 @@ const turnoSchema = new mongoose.Schema({
         default: false
     },
 
+    // Fecha de vencimiento asignada al intento de pago
+    paymentCheckoutExpiresAt: {
+        type: Date,
+        default: null
+    },
+
     paymentExpiresAt: {
         type: Date,
         default: null
