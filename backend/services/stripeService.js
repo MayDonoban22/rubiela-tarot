@@ -1,8 +1,24 @@
+
 const Stripe = require("stripe");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const createCheckoutSession = async (turno, service) => {
+
+    // NUEVO: Obtener el precio en dólares
+    const precio = Number(service.precio);
+
+    // NUEVO: Validar el precio
+    if (
+        !Number.isFinite(precio) ||
+        precio < 0.50 ||
+        Math.abs(precio * 100 - Math.round(precio * 100)) > 0.000001
+    ) {
+        throw new Error("El servicio tiene un precio inválido en USD");
+    }
+
+    // NUEVO: Convertir dólares a centavos
+    const precioEnCentavos = Math.round(precio * 100);
 
     const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
 
@@ -20,13 +36,16 @@ const createCheckoutSession = async (turno, service) => {
                         name: service.nombre,
                         description: `Consulta espiritual - ${service.duracion}`
                     },
-                    unit_amount: service.precio * 100
+                    // MODIFICADO: utilizar el precio validado
+                    unit_amount: precioEnCentavos
                 },
                 quantity: 1
             }
         ],
+
         success_url: `${process.env.CLIENT_URL}/payment-success`,
         cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+
         metadata: {
             turnoId: turno._id.toString()
         }
