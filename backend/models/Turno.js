@@ -73,6 +73,12 @@ const turnoSchema = new mongoose.Schema({
 
     },
 
+    // Indica si se está creando una sesión de pago
+    paymentProcessing: {
+        type: Boolean,
+        default: false
+    },
+
     paymentExpiresAt: {
         type: Date,
         default: null
