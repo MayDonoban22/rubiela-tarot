@@ -76,9 +76,30 @@ const stripeWebhook = async (req, res) => {
             );
 
             if (!turno) {
-                console.warn(
-                    `No se confirmó el turno ${turnoId}. Revisar su estado.`
+
+                const reservaActual = await Turno.findById(turnoId);
+
+                // Comprobar si el evento ya fue procesado
+                if (
+                    reservaActual &&
+                    reservaActual.paymentStatus === "PAID" &&
+                    reservaActual.paymentSessionId === session.id &&
+                    reservaActual.paymentAmount === session.amount_total &&
+                    reservaActual.paymentCurrency === session.currency.toUpperCase()
+                ) {
+                    console.log(`Pago del turno ${turnoId} ya procesado`);
+
+                    return res.json({ received: true });
+                }
+
+                // El evento necesita revisión
+                console.error(
+                    `Conflicto al confirmar el pago del turno ${turnoId}`
                 );
+
+                return res.status(500).json({
+                    message: "El pago requiere verificación"
+                });
             }
         }
 
