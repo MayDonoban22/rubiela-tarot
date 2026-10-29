@@ -109,22 +109,54 @@ const createPaymentSession = async (req, res) => {
             });
         }
 
-        const service = await Service.findById(turno.servicio);
+        // Utilizar la reserva que obtuvo el bloqueo
+        const service = await Service.findById(turnoBloqueado.servicio);
 
-        const session = await createCheckoutSession(turno, service);
+        if (!service || !service.activo) {
+            return res.status(409).json({
+                message: "El servicio ya no está disponible. Requiere revisión."
+            });
+        }
 
-        // Guardar la sesión de Stripe
-        turno.paymentSessionId = session.id;
+        const session = await createCheckoutSession(
+            turnoBloqueado,
+            service
+        );
 
-        // Convertir el vencimiento de Stripe a Date de JavaScript
-        turno.paymentExpiresAt = new Date(session.expires_at * 1000);
+        // Guardar los datos de Stripe únicamente si conservamos el bloqueo
+        const turnoActualizado = await Turno.findOneAndUpdate(
+            {
+                _id: turnoBloqueado._id,
+                paymentProcessing: true,
+                paymentStatus: "PENDING",
+                estado: "pendiente",
+                paymentSessionId: { $exists: false }
+            },
+            {
+                $set: {
+                    paymentSessionId: session.id,
+                    paymentExpiresAt: new Date(session.expires_at * 1000),
+                    paymentAmount: session.amount_total,
+                    paymentCurrency: session.currency.toUpperCase(),
+                    paymentProcessing: false
+                }
+            },
+            {
+                new: true
+            }
+        );
 
-        // Registrar el importe y la moneda de la sesión
-        turno.paymentAmount = session.amount_total;
-        turno.paymentCurrency = session.currency.toUpperCase();
+        if (!turnoActualizado) {
+            console.error(
+                "No fue posible registrar la sesión de Stripe:",
+                session.id
+            );
 
-        // Guardar los cambios en MongoDB
-        await turno.save();
+            return res.status(500).json({
+                message: "La sesión de pago requiere verificación."
+            });
+        }
+
         res.json({
 
             url: session.url
