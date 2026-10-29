@@ -56,7 +56,13 @@ const stripeWebhook = async (req, res) => {
                     _id: turnoId,
                     paymentSessionId: session.id,
                     paymentStatus: "PENDING",
-                    estado: "pendiente"
+                    estado: "pendiente",
+
+                    // NUEVO: verificar el importe cobrado
+                    paymentAmount: session.amount_total,
+
+                    // NUEVO: verificar la moneda utilizada
+                    paymentCurrency: session.currency.toUpperCase()
                 },
                 {
                     $set: {
