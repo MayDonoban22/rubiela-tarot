@@ -91,6 +91,10 @@ const createPaymentSession = async (req, res) => {
         // Convertir el vencimiento de Stripe a Date de JavaScript
         turno.paymentExpiresAt = new Date(session.expires_at * 1000);
 
+        // Registrar el importe y la moneda de la sesión
+        turno.paymentAmount = session.amount_total;
+        turno.paymentCurrency = session.currency.toUpperCase();
+
         // Guardar los cambios en MongoDB
         await turno.save();
         res.json({
