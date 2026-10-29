@@ -81,6 +81,34 @@ const createPaymentSession = async (req, res) => {
                 message: "La sesión de pago anterior ya no está disponible. Debemos verificar su estado antes de continuar."
             });
         }
+
+        // Bloquear la reserva mientras se prepara el pago
+        const turnoBloqueado = await Turno.findOneAndUpdate(
+            {
+                _id: turnoId,
+                user: req.user.id,
+                estado: "pendiente",
+                paymentStatus: "PENDING",
+                paymentProcessing: false,
+                paymentSessionId: { $exists: false },
+                paymentExpiresAt: { $gt: new Date() }
+            },
+            {
+                $set: {
+                    paymentProcessing: true
+                }
+            },
+            {
+                new: true
+            }
+        );
+
+        if (!turnoBloqueado) {
+            return res.status(409).json({
+                message: "El pago ya se está preparando o la reserva no está disponible."
+            });
+        }
+
         const service = await Service.findById(turno.servicio);
 
         const session = await createCheckoutSession(turno, service);
