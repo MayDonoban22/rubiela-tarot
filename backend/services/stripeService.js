@@ -20,7 +20,19 @@ const createCheckoutSession = async (turno, service) => {
     // NUEVO: Convertir dólares a centavos
     const precioEnCentavos = Math.round(precio * 100);
 
-    const expiresAt = Math.floor(Date.now() / 1000) + 30 * 60;
+    if (!turno.paymentCheckoutExpiresAt) {
+        throw new Error("La reserva no tiene un vencimiento configurado");
+    }
+
+    const expiresAt = Math.floor(
+        new Date(turno.paymentCheckoutExpiresAt).getTime() / 1000
+    );
+
+    const segundosRestantes = expiresAt - Math.floor(Date.now() / 1000);
+
+    if (segundosRestantes < 1800 || segundosRestantes > 86400) {
+        throw new Error("Vencimiento fuera del rango permitido");
+    }
 
     const session = await stripe.checkout.sessions.create({
 
