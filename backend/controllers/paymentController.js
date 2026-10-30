@@ -136,6 +136,7 @@ const createPaymentSession = async (req, res) => {
             {
                 _id: turnoBloqueado._id,
                 paymentProcessing: true,
+                paymentAttemptId: attemptId,
                 paymentStatus: "PENDING",
                 estado: "pendiente",
                 paymentSessionId: { $exists: false }
