@@ -95,7 +95,10 @@ const createPaymentSession = async (req, res) => {
             },
             {
                 $set: {
-                    paymentProcessing: true
+                    paymentProcessing: true,
+                    paymentCheckoutExpiresAt: new Date(
+                        Math.ceil(Date.now() / 1000) * 1000 + 31 * 60 * 1000
+                    )
                 }
             },
             {
