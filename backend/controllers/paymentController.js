@@ -2,6 +2,8 @@ const Turno = require("../models/Turno");
 
 const Service = require("../models/Service");
 
+const { randomUUID } = require("crypto");
+
 const {
     createCheckoutSession,
     getCheckoutSession
@@ -82,6 +84,8 @@ const createPaymentSession = async (req, res) => {
             });
         }
 
+        const attemptId = randomUUID();
+
         // Bloquear la reserva mientras se prepara el pago
         const turnoBloqueado = await Turno.findOneAndUpdate(
             {
@@ -96,6 +100,7 @@ const createPaymentSession = async (req, res) => {
             {
                 $set: {
                     paymentProcessing: true,
+                    paymentAttemptId: attemptId,
                     paymentCheckoutExpiresAt: new Date(
                         Math.ceil(Date.now() / 1000) * 1000 + 31 * 60 * 1000
                     )
