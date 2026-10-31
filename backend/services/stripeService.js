@@ -62,7 +62,7 @@ const createCheckoutSession = async (turno, service) => {
             turnoId: turno._id.toString()
         }
     }, {
-        idempotencyKey: `checkout-${turno._id.toString()}`
+        idempotencyKey: `checkout-${turno.paymentAttemptId}`
     });
 
     return session;
