@@ -65,7 +65,7 @@ const createCheckoutSession = async (turno, service) => {
         idempotencyKey: `checkout-${turno.paymentAttemptId}`
     });
 
-    return sessio;
+    return session;
 };
 
 // Consultar una sesión de pago existente en Stripe
