@@ -111,9 +111,27 @@ const createPaymentSession = async (req, res) => {
             }
         );
 
-        if (!turnoBloqueado) {
+        if (!service || !service.activo) {
+
+            // Liberar el bloqueo porque todavía no hemos llamado a Stripe
+            await Turno.findOneAndUpdate(
+                {
+                    _id: turnoBloqueado._id,
+                    paymentAttemptId: attemptId,
+                    paymentProcessing: true,
+                    paymentSessionId: { $exists: false }
+                },
+                {
+                    $set: {
+                        paymentProcessing: false,
+                        paymentAttemptId: null,
+                        paymentCheckoutExpiresAt: null
+                    }
+                }
+            );
+
             return res.status(409).json({
-                message: "El pago ya se está preparando o la reserva no está disponible."
+                message: "El servicio ya no está disponible. Requiere revisión."
             });
         }
 
