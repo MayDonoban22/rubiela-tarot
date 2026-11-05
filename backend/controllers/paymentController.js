@@ -94,7 +94,7 @@ const createPaymentSession = async (req, res) => {
                 user: req.user.id,
                 estado: "pendiente",
                 paymentStatus: "PENDING",
-                paymentProcessing: false,
+                paymentProcessing: { $ne: true },
                 paymentSessionId: { $exists: false },
                 paymentExpiresAt: { $gt: new Date() }
             },
