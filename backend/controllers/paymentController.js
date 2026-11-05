@@ -111,9 +111,20 @@ const createPaymentSession = async (req, res) => {
             }
         );
 
+        // Verificar que MongoDB haya bloqueado la reserva
+        if (!turnoBloqueado) {
+            return res.status(409).json({
+                message: "El pago ya se está preparando o la reserva no está disponible."
+            });
+        }
+
+        // Consultar el servicio asociado a la reserva
+        const service = await Service.findById(turnoBloqueado.servicio);
+
+        // Verificar que el servicio esté disponible
         if (!service || !service.activo) {
 
-            // Liberar el bloqueo porque todavía no hemos llamado a Stripe
+            // Liberar el bloqueo antes de llamar a Stripe
             await Turno.findOneAndUpdate(
                 {
                     _id: turnoBloqueado._id,
@@ -130,15 +141,6 @@ const createPaymentSession = async (req, res) => {
                 }
             );
 
-            return res.status(409).json({
-                message: "El servicio ya no está disponible. Requiere revisión."
-            });
-        }
-
-        // Utilizar la reserva que obtuvo el bloqueo
-        const service = await Service.findById(turnoBloqueado.servicio);
-
-        if (!service || !service.activo) {
             return res.status(409).json({
                 message: "El servicio ya no está disponible. Requiere revisión."
             });
