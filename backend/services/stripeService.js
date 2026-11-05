@@ -30,7 +30,11 @@ const createCheckoutSession = async (turno, service, isRetry = false) => {
 
     const segundosRestantes = expiresAt - Math.floor(Date.now() / 1000);
 
-    if (segundosRestantes < 1800 || segundosRestantes > 86400) {
+    if (
+        segundosRestantes <= 0 ||
+        segundosRestantes > 86400 ||
+        (!isRetry && segundosRestantes < 1800)
+    ) {
         throw new Error("Vencimiento fuera del rango permitido");
     }
 
@@ -77,7 +81,7 @@ const getCheckoutSession = async (sessionId) => {
 
 // Recuperar un intento de Checkout con sus mismos parámetros
 const retryCheckoutSession = async (turno, service) => {
-    return createCheckoutSession(turno, service);
+    return createCheckoutSession(turno, service, true);
 };
 
 module.exports = {
