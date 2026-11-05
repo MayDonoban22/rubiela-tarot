@@ -59,8 +59,10 @@ const createCheckoutSession = async (turno, service) => {
         cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
 
         metadata: {
-            turnoId: turno._id.toString()
+            turnoId: turno._id.toString(),
+            paymentAttemptId: turno.paymentAttemptId
         }
+
     }, {
         idempotencyKey: `checkout-${turno.paymentAttemptId}`
     });
@@ -80,5 +82,6 @@ const retryCheckoutSession = async (turno, service) => {
 
 module.exports = {
     createCheckoutSession,
-    getCheckoutSession
+    getCheckoutSession,
+    retryCheckoutSession
 };
