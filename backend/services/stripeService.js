@@ -73,6 +73,11 @@ const getCheckoutSession = async (sessionId) => {
     return stripe.checkout.sessions.retrieve(sessionId);
 };
 
+// Recuperar un intento de Checkout con sus mismos parámetros
+const retryCheckoutSession = async (turno, service) => {
+    return createCheckoutSession(turno, service);
+};
+
 module.exports = {
     createCheckoutSession,
     getCheckoutSession
