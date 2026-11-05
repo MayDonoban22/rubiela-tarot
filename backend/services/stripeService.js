@@ -3,7 +3,7 @@ const Stripe = require("stripe");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const createCheckoutSession = async (turno, service) => {
+const createCheckoutSession = async (turno, service, isRetry = false) => {
 
     // NUEVO: Obtener el precio en dólares
     const precio = Number(service.precio);
