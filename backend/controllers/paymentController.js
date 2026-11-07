@@ -88,7 +88,7 @@ const createPaymentSession = async (req, res) => {
         const attemptId = randomUUID();
 
         // Bloquear la reserva mientras se prepara el pago
-        const turnoBloqueado = await Turno.findOneAndUpdat(
+        const turnoBloqueado = await Turno.findOneAndUpdate(
             {
                 _id: turnoId,
                 user: req.user.id,
