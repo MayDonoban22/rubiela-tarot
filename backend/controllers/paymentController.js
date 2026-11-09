@@ -95,6 +95,7 @@ const createPaymentSession = async (req, res) => {
                 estado: "pendiente",
                 paymentStatus: "PENDING",
                 paymentProcessing: { $ne: true },
+                paymentAttemptId: null,
                 paymentSessionId: { $exists: false },
                 paymentExpiresAt: { $gt: new Date() }
             },
