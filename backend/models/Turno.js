@@ -85,6 +85,17 @@ const turnoSchema = new mongoose.Schema({
         default: null
     },
 
+    // Datos originales del intento de pago
+    paymentAttemptSnapshot: {
+        nombre: String,
+        duracion: Number,
+        amount: Number,
+        currency: {
+            type: String,
+            default: "USD"
+        }
+    },
+
     // Fecha de vencimiento asignada al intento de pago
     paymentCheckoutExpiresAt: {
         type: Date,
