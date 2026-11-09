@@ -1,3 +1,4 @@
+
 const Turno = require("../models/Turno");
 
 const Service = require("../models/Service");
@@ -16,60 +17,56 @@ const createPaymentSession = async (req, res) => {
 
         const { turnoId } = req.params;
 
+        // 1. Buscar la reserva en MongoDB
         const turno = await Turno.findById(turnoId);
 
         if (!turno) {
-
             return res.status(404).json({
-
                 message: "Turno no encontrado"
-
             });
-
         }
 
-        // Verificar que la reserva pertenece al usuario autenticado
+        // 2. Verificar que la reserva pertenezca al usuario
         if (turno.user.toString() !== req.user.id.toString()) {
             return res.status(403).json({
                 message: "No tienes autorización para pagar esta reserva"
             });
         }
 
-        // Verificar si la reserva ya fue pagada
+        // 3. Verificar que la reserva no esté pagada
         if (turno.paymentStatus === "PAID") {
             return res.status(409).json({
                 message: "Esta reserva ya fue pagada"
             });
         }
 
-        // Verificar que la reserva siga pendiente
+        // 4. Verificar el estado de la reserva
         if (turno.estado !== "pendiente") {
             return res.status(409).json({
                 message: "Esta reserva no está disponible para pago"
             });
         }
 
-        // Comprobar que la reserva tiene un plazo de pago
+        // 5. Verificar el plazo de pago
         if (!turno.paymentExpiresAt) {
             return res.status(409).json({
                 message: "Esta reserva no tiene un plazo de pago válido"
             });
         }
 
-        // Comprobar si terminó el plazo
         if (new Date(turno.paymentExpiresAt).getTime() <= Date.now()) {
             return res.status(409).json({
                 message: "El plazo de pago ha terminado. Debes solicitar una nueva reserva."
             });
         }
 
+        // 6. Recuperar una sesión existente
         if (turno.paymentSessionId) {
 
             const session = await getCheckoutSession(
                 turno.paymentSessionId
             );
 
-            // Recuperar una sesión abierta y vigente
             if (
                 session.status === "open" &&
                 session.expires_at * 1000 > Date.now()
@@ -79,15 +76,38 @@ const createPaymentSession = async (req, res) => {
                 });
             }
 
-            // No generar otro cobro hasta resolver el estado anterior
             return res.status(409).json({
-                message: "La sesión de pago anterior ya no está disponible. Debemos verificar su estado antes de continuar."
+                message: "La sesión anterior no está disponible. Debemos verificar su estado."
             });
         }
 
+        // 7. Consultar el servicio
+        const service = await Service.findById(turno.servicio);
+
+        if (!service || !service.activo) {
+            return res.status(409).json({
+                message: "El servicio no está disponible"
+            });
+        }
+
+        // 8. Validar el precio en USD
+        const precio = Number(service.precio);
+        const amount = Math.round(precio * 100);
+
+        if (
+            !Number.isFinite(precio) ||
+            precio < 0.50 ||
+            Math.abs(precio * 100 - amount) > 0.000001
+        ) {
+            return res.status(409).json({
+                message: "El servicio tiene un precio inválido"
+            });
+        }
+
+        // 9. Generar un identificador único del intento
         const attemptId = randomUUID();
 
-        // Bloquear la reserva mientras se prepara el pago
+        // 10. Bloquear el turno y guardar el precio original
         const turnoBloqueado = await Turno.findOneAndUpdate(
             {
                 _id: turnoId,
@@ -103,8 +123,17 @@ const createPaymentSession = async (req, res) => {
                 $set: {
                     paymentProcessing: true,
                     paymentAttemptId: attemptId,
+
+                    paymentAttemptSnapshot: {
+                        nombre: service.nombre,
+                        duracion: service.duracion,
+                        amount: amount,
+                        currency: "USD"
+                    },
+
                     paymentCheckoutExpiresAt: new Date(
-                        Math.ceil(Date.now() / 1000) * 1000 + 31 * 60 * 1000
+                        Math.ceil(Date.now() / 1000) * 1000 +
+                        31 * 60 * 1000
                     )
                 }
             },
@@ -113,47 +142,19 @@ const createPaymentSession = async (req, res) => {
             }
         );
 
-        // Verificar que MongoDB haya bloqueado la reserva
         if (!turnoBloqueado) {
             return res.status(409).json({
                 message: "El pago ya se está preparando o la reserva no está disponible."
             });
         }
 
-        // Consultar el servicio asociado a la reserva
-        const service = await Service.findById(turnoBloqueado.servicio);
-
-        // Verificar que el servicio esté disponible
-        if (!service || !service.activo) {
-
-            // Liberar el bloqueo antes de llamar a Stripe
-            await Turno.findOneAndUpdate(
-                {
-                    _id: turnoBloqueado._id,
-                    paymentAttemptId: attemptId,
-                    paymentProcessing: true,
-                    paymentSessionId: { $exists: false }
-                },
-                {
-                    $set: {
-                        paymentProcessing: false,
-                        paymentAttemptId: null,
-                        paymentCheckoutExpiresAt: null
-                    }
-                }
-            );
-
-            return res.status(409).json({
-                message: "El servicio ya no está disponible. Requiere revisión."
-            });
-        }
-
+        // 11. Crear la sesión de Stripe
         const session = await createCheckoutSession(
             turnoBloqueado,
             service
         );
 
-        // Guardar los datos de Stripe únicamente si conservamos el bloqueo
+        // 12. Guardar la información de Stripe en MongoDB
         const turnoActualizado = await Turno.findOneAndUpdate(
             {
                 _id: turnoBloqueado._id,
@@ -166,7 +167,9 @@ const createPaymentSession = async (req, res) => {
             {
                 $set: {
                     paymentSessionId: session.id,
-                    paymentExpiresAt: new Date(session.expires_at * 1000),
+                    paymentExpiresAt: new Date(
+                        session.expires_at * 1000
+                    ),
                     paymentAmount: session.amount_total,
                     paymentCurrency: session.currency.toUpperCase(),
                     paymentProcessing: false
@@ -188,28 +191,24 @@ const createPaymentSession = async (req, res) => {
             });
         }
 
-        res.json({
-
+        // 13. Devolver al frontend la URL de Stripe
+        return res.json({
             url: session.url
-
         });
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Error creando sesión de pago:",
+            error
+        );
 
-        res.status(500).json({
-
-            message: "Error creando sesión pago"
-
+        return res.status(500).json({
+            message: "Error creando sesión de pago"
         });
-
     }
-
 };
 
 module.exports = {
-
     createPaymentSession
-
 };
