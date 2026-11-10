@@ -1,42 +1,45 @@
+
 import * as yup from "yup";
 import yupPassword from "yup-password";
 
 yupPassword(yup);
 
+// Validaciones para crear una cuenta
 export const registerSchema = yup.object({
     nombre: yup
         .string()
+        .trim()
         .required("El nombre es obligatorio")
-        .matches(/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/, "Solo se permiten letras")
-        .min(2, "Debe tener al menos 2 caracteres"),
+        .min(3, "El nombre debe tener al menos 3 caracteres")
+        .matches(
+            /^[A-Za-zÁÉÍÓÚÜáéíóúüñÑ\s]+$/,
+            "El nombre solo puede contener letras y espacios"
+        ),
 
     email: yup
         .string()
+        .trim()
         .required("El correo electrónico es obligatorio")
-        .email("Correo electrónico inválido"),
+        .email("Ingresa un correo electrónico válido"),
 
     password: yup
         .string()
         .required("La contraseña es obligatoria")
-        .min(4, "Debe tener al menos 4 caracteres")
-        .minLowercase(1, "Debe tener al menos una minúscula")
-        // .minUppercase(1, "Debe tener al menos una mayúscula")
-        .minNumbers(1, "Debe tener al menos un número")
-    // .minSymbols(1, "Debe tener al menos un símbolo"),
+        .min(6, "La contraseña debe tener al menos 6 caracteres")
+        .minLowercase(1, "Debe contener al menos una letra minúscula")
+        .minUppercase(1, "Debe contener al menos una letra mayúscula")
+        .minNumbers(1, "Debe contener al menos un número"),
 });
 
+// Validaciones para iniciar sesión
 export const loginSchema = yup.object({
     email: yup
         .string()
+        .trim()
         .required("El correo electrónico es obligatorio")
-        .email("Correo electrónico inválido"),
+        .email("Ingresa un correo electrónico válido"),
 
     password: yup
         .string()
-        .required("La contraseña es obligatoria")
-        .min(4, "Debe tener al menos 4 caracteres")
-        .minLowercase(1, "Debe tener al menos una minúscula")
-        // .minUppercase(1, "Debe tener al menos una mayúscula")
-        .minNumbers(1, "Debe tener al menos un número")
-    // .minSymbols(1, "Debe tener al menos un símbolo"),
+        .required("La contraseña es obligatoria"),
 });
