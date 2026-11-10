@@ -60,7 +60,19 @@ const createPaymentSession = async (req, res) => {
             });
         }
 
-        // 6. Recuperar una sesión existente
+        // 6. Detectar un intento de pago interrumpido
+        if (turno.paymentAttemptId && !turno.paymentSessionId) {
+
+            console.warn(
+                `Intento pendiente de recuperación: ${turno.paymentAttemptId}`
+            );
+
+            return res.status(409).json({
+                message: "Existe un intento de pago anterior que necesita verificación. Intenta nuevamente más tarde."
+            });
+        }
+
+        // 7. Recuperar una sesión existente
         if (turno.paymentSessionId) {
 
             const session = await getCheckoutSession(
