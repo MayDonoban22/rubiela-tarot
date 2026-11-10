@@ -1,144 +1,205 @@
-import { Link, useNavigate } from "react-router-dom";
-import HeaderAuthSimple from "../components/Header/HeaderAuthSimple";
-import Footer from "../components/Footer/Footer";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { registerSchema } from "../schemas";
-import { useState } from "react";
-import { useAppContext } from "../hooks/useAppContext";
-// import { setToken } from "../utils/token";
-import InfoTooltip from "../components/InfoTooltip";
 
-const tokenRegister = async (data) => {
-  console.log("tokenRegister:", data);
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ token: "jwt-token" });
-    }, 1000);
-  });
-};
+import HeaderAuthSimple from "../components/Header/HeaderAuthSimple";
+import Footer from "../components/Footer/Footer";
+import { registerSchema } from "../schemas";
 
 const Register = () => {
+  const [serverError, setServerError] = useState("");
+  const [success, setSuccess] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm({ resolver: yupResolver(registerSchema) });
-
-  const { login } = useAppContext();
-  const navigate = useNavigate();
-  const [showTooltip, setShowTooltip] = useState(false);
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: yupResolver(registerSchema),
+    mode: "onBlur",
+  });
 
   const onSubmit = async (data) => {
+    setServerError("");
+    setSuccess(false);
+
     try {
-      const response = await tokenRegister(data);
+      const apiUrl = import.meta.env.VITE_API_URL;
 
-      login(response.token); // ✅ ÚNICO lugar
+      if (!apiUrl) {
+        throw new Error("La URL del servidor no está configurada.");
+      }
 
-      setShowTooltip(true);
+      const response = await fetch(`${apiUrl}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.nombre.trim(),
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+        }),
+      });
 
-      setTimeout(() => {
-        setShowTooltip(false);
-        navigate("/login", { replace: true });
-      }, 2500);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "No fue posible completar el registro.",
+        );
+      }
+
+      // El usuario fue creado en MongoDB.
+      // No iniciamos sesión con tokens ficticios.
+      setSuccess(true);
     } catch (error) {
-      console.error("Error al registrar:", error);
+      setServerError(error.message || "Ocurrió un error inesperado.");
     }
   };
+
+  const fields = [
+    {
+      label: "Nombre",
+      name: "nombre",
+      type: "text",
+      icon: <FaUser />,
+      autoComplete: "name",
+    },
+    {
+      label: "Correo electrónico",
+      name: "email",
+      type: "email",
+      icon: <FaEnvelope />,
+      autoComplete: "email",
+    },
+    {
+      label: "Contraseña",
+      name: "password",
+      type: "password",
+      icon: <FaLock />,
+      autoComplete: "new-password",
+    },
+  ];
+
   return (
     <>
       <HeaderAuthSimple variant="register" />
-      <div className="bg-primary flex flex-col min-h-screen relative">
-        {showTooltip && (
-          <InfoTooltip message="¡Registro exitoso! Inicia sesión para continuar." />
-        )}
-        <div className="flex flex-col lg:flex-row border border-[var(--color-goldLight)] flex-grow min-h-[92vh]">
-          <div className="lg:w-1/2 flex items-center justify-center border-r border-[var(--color-goldLight)] px-6 py-40">
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="w-full max-w-[526px] flex flex-col gap-14"
-              noValidate
-            >
-              <h2 className="text-3xl md:text-4xl font-[abhaya] text-[#9E874D] text-center mb-4">
-                Regístrate
+
+      <div className="bg-primary flex flex-col min-h-screen">
+        <div className="flex flex-col lg:flex-row flex-grow border border-[var(--color-goldLight)]">
+          <div className="lg:w-1/2 flex items-center justify-center px-6 py-20">
+            <div className="w-full max-w-[526px]">
+              <h2 className="text-3xl md:text-4xl font-[abhaya] text-[#BB9B49] text-center mb-4">
+                Crea tu cuenta
               </h2>
 
-              {[
-                {
-                  label: "Nombre",
-                  name: "nombre",
-                  type: "text",
-                  icon: <FaUser className="text-[#9E874D]" />,
-                },
-                {
-                  label: "Correo electrónico",
-                  name: "email",
-                  type: "email",
-                  icon: <FaEnvelope className="text-[#9E874D]" />,
-                },
-                {
-                  label: "Contraseña",
-                  name: "password",
-                  type: "password",
-                  icon: <FaLock className="text-[#9E874D]" />,
-                },
-              ].map((field, i) => (
-                <div key={i} className="flex flex-col">
-                  <label
-                    className="text-lg md:text-xl font-[abhaya] text-[#9E874D] mb-2"
-                    htmlFor={field.name}
+              <p className="text-tertiary text-center mb-10">
+                Comienza tu experiencia con Luz de Rubí.
+              </p>
+
+              {success ? (
+                <div
+                  role="status"
+                  className="border border-[#BB9B49] rounded-xl p-7 text-center"
+                >
+                  <h3 className="text-[#BB9B49] font-[abhaya] text-2xl mb-3">
+                    ¡Registro exitoso!
+                  </h3>
+
+                  <p className="text-tertiary mb-6">
+                    Tu cuenta fue creada correctamente. Ya puedes iniciar
+                    sesión.
+                  </p>
+
+                  <Link
+                    to="/login"
+                    className="inline-block bg-[#BB9B49] text-[#111827] font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition"
                   >
-                    {field.label}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                      {field.icon}
-                    </span>
-                    <input
-                      id={field.name}
-                      {...register(field.name)}
-                      type={field.type}
-                      className={`block w-full h-[35px] bg-tertiary border rounded-md pl-10 pr-3 focus:outline-none focus:ring-2 ${
-                        errors[field.name]
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-goldLight focus:ring-goldLight"
-                      } text-black text-sm md:text-base`}
-                    />
-                  </div>
-                  {errors[field.name] && (
-                    <p className="text-red-500 text-sm mt-1 font-inter">
-                      {errors[field.name].message}
+                    Iniciar sesión
+                  </Link>
+                </div>
+              ) : (
+                <form
+                  onSubmit={handleSubmit(onSubmit)}
+                  className="flex flex-col gap-6"
+                  noValidate
+                >
+                  {fields.map((field) => (
+                    <div key={field.name} className="flex flex-col gap-2">
+                      <label
+                        htmlFor={field.name}
+                        className="text-lg font-[abhaya] text-[#BB9B49]"
+                      >
+                        {field.label}
+                      </label>
+
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#BB9B49]">
+                          {field.icon}
+                        </span>
+
+                        <input
+                          id={field.name}
+                          type={field.type}
+                          autoComplete={field.autoComplete}
+                          {...register(field.name)}
+                          aria-invalid={Boolean(errors[field.name])}
+                          className={`w-full min-h-11 rounded-lg bg-tertiary text-[#111827] border pl-10 pr-4 outline-none focus:ring-2 ${
+                            errors[field.name]
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-[#BB9B49] focus:ring-[#BB9B49]"
+                          }`}
+                        />
+                      </div>
+
+                      {errors[field.name] && (
+                        <p className="text-red-400 text-sm" role="alert">
+                          {errors[field.name].message}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+
+                  {serverError && (
+                    <p
+                      role="alert"
+                      className="rounded-lg border border-red-500 p-3 text-red-400 text-sm"
+                    >
+                      {serverError}
                     </p>
                   )}
-                </div>
-              ))}
 
-              <div className="flex flex-col items-center mt-8 space-y-5">
-                <button
-                  type="submit"
-                  className="w-full md:w-[170px] h-[35px] bg-goldLight text-tertiary font-inter text-sm md:text-base rounded-md hover:opacity-90 cursor-pointer transition"
-                >
-                  Registrarse
-                </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full min-h-11 bg-[#BB9B49] text-[#111827] font-semibold rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
+                  </button>
 
-                <p className="text-tertiary text-sm md:text-base font-inter text-center">
-                  ¿Ya eres miembro?{" "}
-                  <Link to="/login" className="underline">
-                    Inicia sesión aquí
-                  </Link>
-                </p>
-              </div>
-            </form>
+                  <p className="text-tertiary text-center">
+                    ¿Ya tienes una cuenta?{" "}
+                    <Link to="/login" className="text-[#BB9B49] underline">
+                      Inicia sesión
+                    </Link>
+                  </p>
+                </form>
+              )}
+            </div>
           </div>
+
           <div className="lg:w-1/2 hidden lg:flex items-center justify-center">
             <img
               src="/assets/images/card-rubi.png"
-              alt="Carta Luz de Rubí"
+              alt="Luz de Rubí"
               className="w-full h-full object-cover"
             />
           </div>
         </div>
+
         <Footer />
       </div>
     </>
