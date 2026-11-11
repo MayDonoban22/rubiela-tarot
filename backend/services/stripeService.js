@@ -1,13 +1,21 @@
+
 const Stripe = require("stripe");
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Stripe permanece deshabilitado cuando no hay credenciales.
+// La pasarela principal prevista para Luz de Rubí es Wompi.
+const stripe = process.env.STRIPE_SECRET_KEY
+    ? new Stripe(process.env.STRIPE_SECRET_KEY)
+    : null;
 
-// Obtener snapshot del intento o, como respaldo, construirlo desde service
+// Obtener los datos originales del intento de pago
 const getCheckoutSnapshot = (turno, service) => {
+
+    // Utilizar el precio guardado originalmente en MongoDB
     if (
         turno.paymentAttemptSnapshot &&
         Number.isFinite(turno.paymentAttemptSnapshot.amount) &&
-        turno.paymentAttemptSnapshot.amount > 0 &&
+        Number.isInteger(turno.paymentAttemptSnapshot.amount) &&
+        turno.paymentAttemptSnapshot.amount >= 50 &&
         turno.paymentAttemptSnapshot.currency
     ) {
         return {
@@ -18,7 +26,7 @@ const getCheckoutSnapshot = (turno, service) => {
         };
     }
 
-    // Respaldo para turnos antiguos
+    // Compatibilidad con intentos anteriores sin snapshot
     const precio = Number(service?.precio);
     const amount = Math.round(precio * 100);
 
@@ -27,7 +35,9 @@ const getCheckoutSnapshot = (turno, service) => {
         precio < 0.50 ||
         Math.abs(precio * 100 - amount) > 0.000001
     ) {
-        throw new Error("El servicio tiene un precio inválido en USD");
+        throw new Error(
+            "El servicio tiene un precio inválido en USD"
+        );
     }
 
     return {
@@ -38,23 +48,41 @@ const getCheckoutSnapshot = (turno, service) => {
     };
 };
 
-const createCheckoutSession = async (turno, service, isRetry = false) => {
+// Crear sesión de Stripe (integración temporal no activa)
+const createCheckoutSession = async (
+    turno,
+    service,
+    isRetry = false
+) => {
+
+    if (!stripe) {
+        throw new Error(
+            "Stripe no está configurado. La pasarela prevista es Wompi."
+        );
+    }
+
     if (!turno.paymentCheckoutExpiresAt) {
-        throw new Error("La reserva no tiene un vencimiento configurado");
+        throw new Error(
+            "La reserva no tiene un vencimiento configurado"
+        );
     }
 
     const expiresAt = Math.floor(
         new Date(turno.paymentCheckoutExpiresAt).getTime() / 1000
     );
 
-    const segundosRestantes = expiresAt - Math.floor(Date.now() / 1000);
+    const segundosRestantes =
+        expiresAt - Math.floor(Date.now() / 1000);
 
     if (
+        !Number.isFinite(segundosRestantes) ||
         segundosRestantes <= 0 ||
         segundosRestantes > 86400 ||
         (!isRetry && segundosRestantes < 1800)
     ) {
-        throw new Error("Vencimiento fuera del rango permitido");
+        throw new Error(
+            "Vencimiento fuera del rango permitido"
+        );
     }
 
     const snapshot = getCheckoutSnapshot(turno, service);
@@ -69,18 +97,25 @@ const createCheckoutSession = async (turno, service, isRetry = false) => {
                 {
                     price_data: {
                         currency: snapshot.currency,
+
                         product_data: {
                             name: snapshot.nombre,
-                            description: `Consulta espiritual - ${snapshot.duracion}`
+                            description:
+                                `Consulta espiritual - ${snapshot.duracion}`
                         },
+
                         unit_amount: snapshot.amount
                     },
+
                     quantity: 1
                 }
             ],
 
-            success_url: `${process.env.CLIENT_URL}/payment-success`,
-            cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
+            success_url:
+                `${process.env.CLIENT_URL}/payment-success`,
+
+            cancel_url:
+                `${process.env.CLIENT_URL}/payment-cancel`,
 
             metadata: {
                 turnoId: turno._id.toString(),
@@ -88,19 +123,34 @@ const createCheckoutSession = async (turno, service, isRetry = false) => {
             }
         },
         {
-            idempotencyKey: `checkout-${turno.paymentAttemptId}`
+            idempotencyKey:
+                `checkout-${turno.paymentAttemptId}`
         }
     );
 
     return session;
 };
 
+// Consultar una sesión existente
 const getCheckoutSession = async (sessionId) => {
+
+    if (!stripe) {
+        throw new Error(
+            "Stripe no está configurado"
+        );
+    }
+
     return stripe.checkout.sessions.retrieve(sessionId);
 };
 
+// Reintentar una operación anterior
 const retryCheckoutSession = async (turno, service) => {
-    return createCheckoutSession(turno, service, true);
+
+    return createCheckoutSession(
+        turno,
+        service,
+        true
+    );
 };
 
 module.exports = {

@@ -3,11 +3,21 @@ const Stripe = require("stripe");
 
 const Turno = require("../models/Turno");
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Inicializar Stripe solo si existen credenciales
+const stripe = process.env.STRIPE_SECRET_KEY
+    ? new Stripe(process.env.STRIPE_SECRET_KEY)
+    : null;
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const stripeWebhook = async (req, res) => {
+
+    // No procesar webhooks si Stripe no está configurado
+    if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
+        return res.status(503).json({
+            message: "El servicio de Stripe no está configurado"
+        });
+    }
 
     const sig = req.headers["stripe-signature"];
 
