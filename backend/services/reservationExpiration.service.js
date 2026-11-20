@@ -2,20 +2,24 @@
 const Turno = require("../models/Turno");
 
 /**
- * Expirar reservas pendientes sin intentos de pago.
+ * LUZ DE RUBÍ
+ * Servicio de vencimiento automático de reservas.
  *
- * IMPORTANTE:
- * - No modifica reservas pagadas.
- * - No modifica reservas con intentos de pago.
- * - No modifica reservas confirmadas.
- * - No elimina documentos de MongoDB.
+ * Libera únicamente reservas pendientes vencidas
+ * que no tengan ningún intento de pago registrado.
+ *
+ * Compatible con Wompi y registros antiguos de Stripe.
  */
+
 const expireUnpaidReservations = async () => {
+
     const now = new Date();
 
     const result = await Turno.updateMany(
         {
+            // Solo reservas pendientes de pago
             estado: "pendiente",
+
             paymentStatus: "PENDING",
 
             // El plazo de pago ya terminó
@@ -24,13 +28,25 @@ const expireUnpaidReservations = async () => {
                 $lte: now
             },
 
-            // No existe un proceso de cobro activo
+            // No existe un proceso de pago activo
             paymentProcessing: { $ne: true },
 
-            // No existe un intento registrado
+            // No existe un proveedor de pago asociado
+            paymentProvider: null,
+
+            // No existe un intento interno registrado
             paymentAttemptId: null,
 
-            // No existe una sesión registrada
+            // WOMPI: sin referencia de pago
+            paymentReference: null,
+
+            // WOMPI: sin transacción registrada
+            paymentTransactionId: null,
+
+            // WOMPI: sin estado de transacción
+            wompiTransactionStatus: null,
+
+            // STRIPE: compatibilidad temporal
             paymentSessionId: null
         },
         {
