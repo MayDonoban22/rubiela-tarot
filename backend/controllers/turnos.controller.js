@@ -1,4 +1,3 @@
-
 const Turno = require("../models/Turno");
 const Service = require("../models/Service");
 const User = require("../models/User.model");
@@ -84,6 +83,43 @@ const sendNotification = async (email, subject, html) => {
             "No se pudo enviar la notificación:",
             error.message
         );
+    }
+};
+
+// Condiciones para liberar una reserva sin riesgo de cobros.
+// null también coincide con campos ausentes en documentos antiguos.
+const noPaymentAttempt = () => ({
+    paymentProcessing: { $ne: true },
+    paymentProvider: null,
+    paymentAttemptId: null,
+    paymentReference: null,
+    paymentTransactionId: null,
+    wompiTransactionStatus: null,
+    paymentSessionId: null
+});
+
+const hasPaymentAttempt = (turno) => (
+    turno.paymentProcessing === true ||
+    [
+        turno.paymentProvider,
+        turno.paymentAttemptId,
+        turno.paymentReference,
+        turno.paymentTransactionId,
+        turno.wompiTransactionStatus,
+        turno.paymentSessionId
+    ].some(value => value != null)
+);
+
+// Un fallo de correo o de búsqueda del usuario no debe convertir
+// una actualización exitosa de la reserva en un error HTTP.
+const notifyUser = async (userId, subject, html) => {
+    try {
+        const user = await User.findById(userId);
+        if (user?.email) {
+            await sendNotification(user.email, subject, html);
+        }
+    } catch (error) {
+        console.error("Error preparando notificación:", error.message);
     }
 };
 
@@ -239,39 +275,21 @@ const cancelTurno = async (req, res, next) => {
             });
         }
 
-        if (turno.estado === "cancelado") {
-            return res.status(409).json({
-                message: "Este turno ya está cancelado."
-            });
-        }
-
-        if (
-            turno.estado === "completado" ||
-            turno.estado === "expirado"
-        ) {
-            return res.status(409).json({
-                message:
-                    "Esta reserva ya no puede cancelarse."
-            });
-        }
-
-        // Un pago existente requiere una política de reembolso.
         if (turno.paymentStatus === "PAID") {
             return res.status(409).json({
-                message:
-                    "Esta reserva está pagada. Solicita la cancelación al administrador."
+                message: "Esta reserva está pagada. Solicita la cancelación al administrador."
             });
         }
 
-        // No liberar un horario con un pago en verificación.
-        if (
-            turno.paymentProcessing ||
-            turno.paymentAttemptId ||
-            turno.paymentSessionId
-        ) {
+        if (turno.estado !== "pendiente") {
             return res.status(409).json({
-                message:
-                    "Existe un intento de pago que requiere verificación antes de cancelar."
+                message: "Solo puedes cancelar reservas pendientes sin pago iniciado."
+            });
+        }
+
+        if (turno.paymentStatus !== "PENDING" || hasPaymentAttempt(turno)) {
+            return res.status(409).json({
+                message: "El pago requiere verificación antes de cancelar."
             });
         }
 
@@ -286,11 +304,9 @@ const cancelTurno = async (req, res, next) => {
             {
                 _id: turno._id,
                 user: req.user.id,
-                estado: turno.estado,
-                paymentStatus: { $ne: "PAID" },
-                paymentProcessing: { $ne: true },
-                paymentAttemptId: null,
-                paymentSessionId: null
+                estado: "pendiente",
+                paymentStatus: "PENDING",
+                ...noPaymentAttempt()
             },
             {
                 $set: {
@@ -299,7 +315,7 @@ const cancelTurno = async (req, res, next) => {
                         motivo || "Cancelado por usuario"
                 }
             },
-            { new: true }
+            { new: true, runValidators: true }
         );
 
         if (!actualizado) {
@@ -309,24 +325,16 @@ const cancelTurno = async (req, res, next) => {
             });
         }
 
-        const user = await User.findById(req.user.id);
-
-        if (user?.email) {
-            await sendNotification(
-                user.email,
-                "Reserva cancelada - Luz de Rubí",
-                `
-                    <h2>Tu reserva fue cancelada</h2>
-                    <p><strong>Fecha:</strong> ${fecha}</p>
-                `.replace(
-                    "${fecha}",
-                    actualizado.fecha.toISOString().slice(0, 10)
-                ) + `
-                    <p><strong>Hora:</strong> ${actualizado.hora}</p>
-                    <p>Gracias por comunicarte con Luz de Rubí.</p>
-                `
-            );
-        }
+        await notifyUser(
+            req.user.id,
+            "Reserva cancelada - Luz de Rubí",
+            `
+                <h2>Tu reserva fue cancelada</h2>
+                <p><strong>Fecha:</strong> ${actualizado.fecha.toISOString().slice(0, 10)}</p>
+                <p><strong>Hora:</strong> ${actualizado.hora}</p>
+                <p>Gracias por comunicarte con Luz de Rubí.</p>
+            `
+        );
 
         return res.json({
             message: "Reserva cancelada correctamente.",
@@ -431,7 +439,7 @@ const rescheduleTurno = async (req, res, next) => {
                     hora
                 }
             },
-            { new: true }
+            { new: true, runValidators: true }
         );
 
         if (!actualizado) {
@@ -441,20 +449,16 @@ const rescheduleTurno = async (req, res, next) => {
             });
         }
 
-        const user = await User.findById(req.user.id);
-
-        if (user?.email) {
-            await sendNotification(
-                user.email,
-                "Reserva reagendada - Luz de Rubí",
-                `
-                    <h2>Tu consulta fue reagendada</h2>
-                    <p><strong>Nueva fecha:</strong> ${fecha}</p>
-                    <p><strong>Nueva hora:</strong> ${hora}</p>
-                    <p>Gracias por confiar en Luz de Rubí.</p>
-                `
-            );
-        }
+        await notifyUser(
+            req.user.id,
+            "Reserva reagendada - Luz de Rubí",
+            `
+                <h2>Tu consulta fue reagendada</h2>
+                <p><strong>Nueva fecha:</strong> ${fecha}</p>
+                <p><strong>Nueva hora:</strong> ${hora}</p>
+                <p>Gracias por confiar en Luz de Rubí.</p>
+            `
+        );
 
         return res.json({
             message: "Reserva reagendada correctamente.",
@@ -502,68 +506,91 @@ const updateTurnoStatus = async (req, res, next) => {
             });
         }
 
-        // El administrador no puede declarar un pago
-        // realizado modificando solamente el estado.
-        if (
-            ["confirmado", "completado", "reagendado", "no_asistio"]
-                .includes(estado) &&
-            turno.paymentStatus !== "PAID"
-        ) {
-            return res.status(409).json({
-                message:
-                    "La reserva no tiene un pago confirmado."
-            });
-        }
+        // No reabrir reservas cerradas ni confirmar pagos manualmente.
+        // El webhook verificará y confirmará el pago de Wompi.
+        const filter = {
+            _id: turno._id,
+            estado: turno.estado,
+            fecha: turno.fecha,
+            hora: turno.hora
+        };
+        const changes = {};
 
-        // Evitar cancelar o expirar reservas pagadas
-        // sin gestionar previamente el reembolso.
-        if (
-            ["cancelado", "expirado"].includes(estado) &&
-            turno.paymentStatus === "PAID"
-        ) {
-            return res.status(409).json({
-                message:
-                    "La reserva está pagada y requiere revisión administrativa."
-            });
-        }
+        if (estado !== turno.estado) {
+            if (
+                turno.estado === "pendiente" &&
+                ["cancelado", "expirado"].includes(estado)
+            ) {
+                if (
+                    turno.paymentStatus !== "PENDING" ||
+                    hasPaymentAttempt(turno)
+                ) {
+                    return res.status(409).json({
+                        message: "Debes verificar el pago antes de liberar el horario."
+                    });
+                }
 
-        // Los intentos de pago necesitan conciliación.
-        if (
-            ["cancelado", "expirado"].includes(estado) &&
-            (
-                turno.paymentProcessing ||
-                turno.paymentAttemptId ||
-                turno.paymentSessionId
-            )
-        ) {
-            return res.status(409).json({
-                message:
-                    "Debes verificar el intento de pago antes de liberar el horario."
-            });
-        }
+                Object.assign(filter, {
+                    paymentStatus: "PENDING",
+                    ...noPaymentAttempt()
+                });
 
-        // Reagendar exige definir otra fecha y hora.
-        if (
-            estado === "reagendado" &&
-            turno.estado !== "reagendado"
-        ) {
-            return res.status(409).json({
-                message:
-                    "Utiliza el proceso de reagendamiento para cambiar la fecha."
-            });
-        }
+                // Solo expirar si el plazo realmente terminó.
+                if (estado === "expirado") {
+                    const now = new Date();
+                    if (!turno.paymentExpiresAt || turno.paymentExpiresAt > now) {
+                        return res.status(409).json({
+                            message: "El plazo de pago todavía no ha vencido o no está registrado."
+                        });
+                    }
+                    filter.paymentExpiresAt = { $type: "date", $lte: now };
+                }
 
-        turno.estado = estado;
+                changes.estado = estado;
+                if (estado === "cancelado") {
+                    changes.motivoCancelacion = "Cancelado por administrador";
+                }
+            } else if (
+                ["confirmado", "reagendado"].includes(turno.estado) &&
+                ["completado", "no_asistio"].includes(estado) &&
+                turno.paymentStatus === "PAID"
+            ) {
+                filter.paymentStatus = "PAID";
+                changes.estado = estado;
+            } else {
+                return res.status(409).json({
+                    message: "Cambio de estado no permitido. Los pagos y reembolsos requieren verificación."
+                });
+            }
+        }
 
         if (typeof notas === "string") {
-            turno.notasAdmin = notas.trim();
+            changes.notasAdmin = notas.trim();
         }
 
-        await turno.save();
+        if (Object.keys(changes).length === 0) {
+            return res.json({
+                message: "No hay cambios para aplicar.",
+                turno
+            });
+        }
+
+        // La condición se comprueba en la misma operación de escritura.
+        const actualizado = await Turno.findOneAndUpdate(
+            filter,
+            { $set: changes },
+            { new: true, runValidators: true }
+        );
+
+        if (!actualizado) {
+            return res.status(409).json({
+                message: "La reserva cambió de estado. Actualiza e inténtalo nuevamente."
+            });
+        }
 
         return res.json({
             message: "Estado del turno actualizado.",
-            turno
+            turno: actualizado
         });
 
     } catch (error) {

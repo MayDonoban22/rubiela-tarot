@@ -1,222 +1,330 @@
 
-const Turno = require("../models/Turno");
+const mongoose = require("mongoose");
 
+const Turno = require("../models/Turno");
 const Service = require("../models/Service");
 
-const { randomUUID } = require("crypto");
+const {
+    getWompiConfig,
+    generatePaymentReference,
+    prepareCheckout
+} = require("../services/wompiService");
 
 const {
-    createCheckoutSession,
-    getCheckoutSession,
-    retryCheckoutSession
-} = require("../services/stripeService");
+    convertUsdToCop
+} = require("../services/currency.service");
 
+// Preparar los datos públicos del pago
+const buildPaymentResponse = (turno) => {
+
+    const snapshot = turno.paymentAttemptSnapshot;
+
+    const checkout = prepareCheckout({
+        reference: turno.paymentReference,
+        amountInCents: snapshot.amount,
+        expirationTime:
+            turno.paymentCheckoutExpiresAt.toISOString()
+    });
+
+    return {
+        turnoId: turno._id,
+        provider: "WOMPI",
+        environment: "sandbox",
+
+        checkout,
+
+        pricing: {
+            originalAmount: snapshot.originalAmount,
+            originalCurrency: snapshot.originalCurrency,
+            convertedAmount: snapshot.convertedAmount,
+            convertedCurrency: snapshot.convertedCurrency,
+            exchangeRate: snapshot.exchangeRate,
+            quotedAt: snapshot.quotedAt
+        },
+
+        paymentStatus: turno.paymentStatus,
+        expiresAt: turno.paymentExpiresAt
+    };
+};
+
+// Preparar una sesión de pago con Wompi
 const createPaymentSession = async (req, res) => {
 
     try {
 
         const { turnoId } = req.params;
 
-        // 1. Buscar la reserva en MongoDB
+        // 1. Validar identificador de la reserva
+        if (!mongoose.isValidObjectId(turnoId)) {
+            return res.status(400).json({
+                message: "Identificador de reserva inválido."
+            });
+        }
+
+        // 2. Buscar reserva
         const turno = await Turno.findById(turnoId);
 
         if (!turno) {
             return res.status(404).json({
-                message: "Turno no encontrado"
+                message: "Reserva no encontrada."
             });
         }
 
-        // 2. Verificar que la reserva pertenezca al usuario
-        if (turno.user.toString() !== req.user.id.toString()) {
+        // 3. Comprobar propietario de la reserva
+        if (String(turno.user) !== String(req.user.id)) {
             return res.status(403).json({
-                message: "No tienes autorización para pagar esta reserva"
+                message:
+                    "No tienes autorización para pagar esta reserva."
             });
         }
 
-        // 3. Verificar que la reserva no esté pagada
+        // 4. Evitar pagar nuevamente una reserva pagada
         if (turno.paymentStatus === "PAID") {
             return res.status(409).json({
-                message: "Esta reserva ya fue pagada"
+                message: "Esta reserva ya fue pagada."
             });
         }
 
-        // 4. Verificar el estado de la reserva
-        if (turno.estado !== "pendiente") {
+        // 5. Validar estado actual
+        if (
+            turno.estado !== "pendiente" ||
+            turno.paymentStatus !== "PENDING"
+        ) {
             return res.status(409).json({
-                message: "Esta reserva no está disponible para pago"
+                message:
+                    "La reserva no está disponible para pago."
             });
         }
 
-        // 5. Verificar el plazo de pago
-        if (!turno.paymentExpiresAt) {
+        // 6. Validar vencimiento de la reserva
+        if (
+            !turno.paymentExpiresAt ||
+            !Number.isFinite(
+                turno.paymentExpiresAt.getTime()
+            ) ||
+            turno.paymentExpiresAt.getTime() <= Date.now()
+        ) {
             return res.status(409).json({
-                message: "Esta reserva no tiene un plazo de pago válido"
+                message:
+                    "El plazo de pago terminó. Debes solicitar una nueva reserva."
             });
         }
 
-        if (new Date(turno.paymentExpiresAt).getTime() <= Date.now()) {
-            return res.status(409).json({
-                message: "El plazo de pago ha terminado. Debes solicitar una nueva reserva."
-            });
-        }
+        // 7. Verificar configuración de Wompi
+        try {
 
-        // 6. Detectar un intento de pago interrumpido
-        if (turno.paymentAttemptId && !turno.paymentSessionId) {
+            getWompiConfig();
+
+        } catch (error) {
 
             console.warn(
-                `Intento pendiente de recuperación: ${turno.paymentAttemptId}`
+                "Wompi Sandbox no está configurado."
             );
 
-            return res.status(409).json({
-                message: "Existe un intento de pago anterior que necesita verificación. Intenta nuevamente más tarde."
+            return res.status(503).json({
+                message:
+                    "El sistema de pagos todavía no está disponible."
             });
         }
 
-        // 7. Recuperar una sesión existente
-        if (turno.paymentSessionId) {
+        // 8. Proteger intentos antiguos de Stripe
+        if (
+            turno.paymentProvider === "STRIPE" ||
+            turno.paymentSessionId
+        ) {
+            return res.status(409).json({
+                message:
+                    "Existe un pago anterior que requiere verificación."
+            });
+        }
 
-            const session = await getCheckoutSession(
-                turno.paymentSessionId
-            );
+        // 9. Evitar iniciar otro pago si ya existe
+        // una transacción registrada en Wompi
+        if (turno.paymentTransactionId) {
+            return res.status(409).json({
+                message:
+                    "Existe una transacción que debe verificarse."
+            });
+        }
+
+        // 10. Reutilizar un intento de Wompi existente
+        if (turno.paymentReference) {
 
             if (
-                session.status === "open" &&
-                session.expires_at * 1000 > Date.now()
+                turno.paymentProvider !== "WOMPI" ||
+                turno.paymentEnvironment !== "sandbox" ||
+                turno.paymentProcessing ||
+                !turno.paymentAttemptSnapshot ||
+                !turno.paymentCheckoutExpiresAt ||
+                turno.paymentCheckoutExpiresAt.getTime()
+                <= Date.now()
             ) {
-                return res.json({
-                    url: session.url
+                return res.status(409).json({
+                    message:
+                        "El intento anterior requiere verificación."
                 });
             }
 
+            return res.json(
+                buildPaymentResponse(turno)
+            );
+        }
+
+        // 11. Detectar intentos interrumpidos
+        if (
+            turno.paymentProcessing ||
+            turno.paymentAttemptId
+        ) {
             return res.status(409).json({
-                message: "La sesión anterior no está disponible. Debemos verificar su estado."
+                message:
+                    "Existe un intento de pago pendiente de revisión."
             });
         }
 
-        // 7. Consultar el servicio
-        const service = await Service.findById(turno.servicio);
+        // 12. Obtener servicio desde MongoDB
+        const service = await Service.findById(
+            turno.servicio
+        );
 
         if (!service || !service.activo) {
             return res.status(409).json({
-                message: "El servicio no está disponible"
+                message: "El servicio no está disponible."
             });
         }
 
-        // 8. Validar el precio en USD
-        const precio = Number(service.precio);
-        const amount = Math.round(precio * 100);
+        // 13. Convertir el precio original de USD a COP
+        const conversion = convertUsdToCop(
+            service.precio
+        );
 
-        if (
-            !Number.isFinite(precio) ||
-            precio < 0.50 ||
-            Math.abs(precio * 100 - amount) > 0.000001
-        ) {
-            return res.status(409).json({
-                message: "El servicio tiene un precio inválido"
-            });
-        }
+        // 14. Generar referencia única de Wompi
+        const reference = generatePaymentReference();
 
-        // 9. Generar un identificador único del intento
-        const attemptId = randomUUID();
+        // Respetar el vencimiento original de la reserva
+        const expirationTime =
+            turno.paymentExpiresAt.toISOString();
 
-        // 10. Bloquear el turno y guardar el precio original
-        const turnoBloqueado = await Turno.findOneAndUpdate(
-            {
-                _id: turnoId,
-                user: req.user.id,
-                estado: "pendiente",
-                paymentStatus: "PENDING",
-                paymentProcessing: { $ne: true },
-                paymentAttemptId: null,
-                paymentSessionId: { $exists: false },
-                paymentExpiresAt: { $gt: new Date() }
-            },
-            {
-                $set: {
-                    paymentProcessing: true,
-                    paymentAttemptId: attemptId,
+        // Verificar los parámetros antes de guardar
+        prepareCheckout({
+            reference,
+            amountInCents: conversion.amountInCents,
+            expirationTime
+        });
 
-                    paymentAttemptSnapshot: {
-                        nombre: service.nombre,
-                        duracion: service.duracion,
-                        amount: amount,
-                        currency: "USD"
-                    },
+        // 15. Guardar el intento de forma atómica
+        const turnoActualizado =
+            await Turno.findOneAndUpdate(
+                {
+                    _id: turnoId,
 
-                    paymentCheckoutExpiresAt: new Date(
-                        Math.ceil(Date.now() / 1000) * 1000 +
-                        31 * 60 * 1000
-                    )
+                    user: req.user.id,
+
+                    estado: "pendiente",
+
+                    paymentStatus: "PENDING",
+
+                    paymentProvider: null,
+
+                    paymentProcessing: { $ne: true },
+
+                    paymentAttemptId: null,
+
+                    paymentReference: null,
+
+                    paymentTransactionId: null,
+
+                    paymentSessionId: null,
+
+                    paymentExpiresAt: {
+                        $eq: turno.paymentExpiresAt,
+                        $gt: new Date()
+                    }
+                },
+                {
+                    $set: {
+
+                        paymentProvider: "WOMPI",
+
+                        paymentEnvironment: "sandbox",
+
+                        paymentAttemptId: reference,
+
+                        paymentReference: reference,
+
+                        paymentProcessing: false,
+
+                        paymentCheckoutExpiresAt:
+                            turno.paymentExpiresAt,
+
+                        paymentAttemptSnapshot: {
+
+                            nombre: service.nombre,
+
+                            duracion: service.duracion,
+
+                            amount:
+                                conversion.amountInCents,
+
+                            currency: "COP",
+
+                            originalAmount:
+                                conversion.originalAmount,
+
+                            originalCurrency:
+                                conversion.originalCurrency,
+
+                            convertedAmount:
+                                conversion.convertedAmount,
+
+                            convertedCurrency:
+                                conversion.convertedCurrency,
+
+                            exchangeRate:
+                                conversion.exchangeRate,
+
+                            exchangeRateSource:
+                                conversion.exchangeRateSource,
+
+                            quotedAt:
+                                new Date(conversion.quotedAt)
+                        }
+                    }
+                },
+                {
+                    new: true,
+                    runValidators: true
                 }
-            },
-            {
-                new: true
-            }
-        );
-
-        if (!turnoBloqueado) {
-            return res.status(409).json({
-                message: "El pago ya se está preparando o la reserva no está disponible."
-            });
-        }
-
-        // 11. Crear la sesión de Stripe
-        const session = await createCheckoutSession(
-            turnoBloqueado,
-            service
-        );
-
-        // 12. Guardar la información de Stripe en MongoDB
-        const turnoActualizado = await Turno.findOneAndUpdate(
-            {
-                _id: turnoBloqueado._id,
-                paymentProcessing: true,
-                paymentAttemptId: attemptId,
-                paymentStatus: "PENDING",
-                estado: "pendiente",
-                paymentSessionId: { $exists: false }
-            },
-            {
-                $set: {
-                    paymentSessionId: session.id,
-                    paymentExpiresAt: new Date(
-                        session.expires_at * 1000
-                    ),
-                    paymentAmount: session.amount_total,
-                    paymentCurrency: session.currency.toUpperCase(),
-                    paymentProcessing: false
-                }
-            },
-            {
-                new: true
-            }
-        );
-
-        if (!turnoActualizado) {
-            console.error(
-                "No fue posible registrar la sesión de Stripe:",
-                session.id
             );
 
-            return res.status(500).json({
-                message: "La sesión de pago requiere verificación."
+        if (!turnoActualizado) {
+            return res.status(409).json({
+                message:
+                    "La reserva cambió de estado o ya tiene un intento de pago. Intenta nuevamente."
             });
         }
 
-        // 13. Devolver al frontend la URL de Stripe
-        return res.json({
-            url: session.url
-        });
+        // 16. Entregar información pública al frontend
+        return res.status(200).json(
+            buildPaymentResponse(turnoActualizado)
+        );
 
     } catch (error) {
 
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message:
+                    "Existe un conflicto con la referencia de pago."
+            });
+        }
+
         console.error(
-            "Error creando sesión de pago:",
-            error
+            "Error preparando el pago de Wompi:",
+            error.message
         );
 
         return res.status(500).json({
-            message: "Error creando sesión de pago"
+            message:
+                "No fue posible preparar el pago."
         });
     }
 };
