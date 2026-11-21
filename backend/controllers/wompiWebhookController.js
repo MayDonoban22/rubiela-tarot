@@ -1,98 +1,117 @@
 
-const Turno = require("../models/Turno");
-
 const {
     verifyWebhookSignature,
     getTransaction
 } = require("../services/wompiService");
 
-// Estados reconocidos por Wompi
-const WOMPI_STATUSES = [
-    "PENDING",
-    "APPROVED",
-    "DECLINED",
-    "VOIDED",
-    "ERROR"
-];
+const {
+    reconcileVerifiedTransaction
+} = require("./paymentController");
+
+const Turno = require("../models/Turno");
 
 // =====================================
-// WEBHOOK DE WOMPI
+// WOMPI WEBHOOK CONTROLLER
 // =====================================
 
 const wompiWebhook = async (req, res) => {
 
     try {
 
+        // =====================================
+        // 1. RECIBIR EVENTO
+        // =====================================
+
         const event = req.body;
 
-        // 1. Obtener la firma del evento
-        const checksum = req.headers["x-event-checksum"];
+        const checksum =
+            req.headers["x-event-checksum"];
 
-        // 2. Verificar autenticidad de la notificación
-        const validSignature = verifyWebhookSignature(
-            event,
-            checksum
-        );
+        // =====================================
+        // 2. VALIDAR FIRMA DEL EVENTO
+        // =====================================
+
+        const validSignature =
+            verifyWebhookSignature(
+                event,
+                checksum
+            );
 
         if (!validSignature) {
+
+            console.warn(
+                "Wompi: notificación con firma inválida."
+            );
+
             return res.status(401).json({
-                message: "Firma de Wompi inválida."
+                message:
+                    "No se pudo verificar la autenticidad del evento."
             });
         }
 
-        // 3. Procesar únicamente eventos de transacciones
+        // =====================================
+        // 3. VERIFICAR TIPO DE EVENTO
+        // =====================================
+
         if (event.event !== "transaction.updated") {
+
             return res.status(200).json({
                 received: true,
                 ignored: true
             });
         }
 
-        const eventTransaction = event.data?.transaction;
+        // =====================================
+        // 4. EXTRAER IDENTIFICADOR
+        // =====================================
+
+        const transactionId =
+            event.data?.transaction?.id;
 
         if (
-            !eventTransaction ||
-            typeof eventTransaction.id !== "string" ||
-            !event.signature.properties.includes("transaction.id")
+            typeof transactionId !== "string" ||
+            !/^[A-Za-z0-9_-]+$/.test(transactionId)
         ) {
+
             return res.status(400).json({
-                message: "Evento de transacción inválido."
+                message:
+                    "El evento no contiene una transacción válida."
             });
         }
 
-        // 4. Consultar directamente a Wompi.
-        // No confiar únicamente en los datos del webhook.
+        // =====================================
+        // 5. CONSULTAR DIRECTAMENTE A WOMPI
+        // =====================================
+
+        // Nunca confirmar una reserva utilizando
+        // únicamente la información recibida
+        // en la notificación.
+
         const transaction = await getTransaction(
-            eventTransaction.id
+            transactionId
         );
 
-        const {
-            id,
-            reference,
-            status,
-            currency,
-            amount_in_cents
-        } = transaction;
+        // =====================================
+        // 6. LOCALIZAR RESERVA EN MONGODB
+        // =====================================
 
-        // 5. Validar datos de la transacción
+        const reference = transaction.reference;
+
         if (
             typeof reference !== "string" ||
-            typeof id !== "string" ||
-            currency !== "COP" ||
-            !Number.isSafeInteger(amount_in_cents) ||
-            amount_in_cents <= 0 ||
-            !WOMPI_STATUSES.includes(status)
+            reference.length === 0
         ) {
+
             console.error(
-                "Wompi: datos de transacción inválidos."
+                "Wompi: transacción sin referencia válida."
             );
 
             return res.status(409).json({
-                message: "La transacción requiere revisión."
+                message:
+                    "La transacción requiere revisión."
             });
         }
 
-        // 6. Buscar la reserva asociada
         const turno = await Turno.findOne({
             paymentReference: reference,
             paymentProvider: "WOMPI",
@@ -102,9 +121,12 @@ const wompiWebhook = async (req, res) => {
         if (!turno) {
 
             console.warn(
-                "Wompi: referencia sin reserva asociada:",
+                "Wompi: no se encontró una reserva para la referencia:",
                 reference
             );
+
+            // Reconocemos el evento, pero no
+            // modificamos ninguna reserva.
 
             return res.status(200).json({
                 received: true,
@@ -112,34 +134,17 @@ const wompiWebhook = async (req, res) => {
             });
         }
 
-        // 7. Verificar el importe original del Checkout
-        const snapshot = turno.paymentAttemptSnapshot;
+        // =====================================
+        // 7. EVITAR CONFLICTOS DE TRANSACCIONES
+        // =====================================
 
-        if (
-            !snapshot ||
-            snapshot.amount !== amount_in_cents ||
-            snapshot.currency !== currency
-        ) {
-
-            console.error(
-                "Wompi: diferencia en el importe del pago:",
-                reference
-            );
-
-            return res.status(409).json({
-                message:
-                    "El importe no coincide con la reserva."
-            });
-        }
-
-        // 8. Evitar asociar otra transacción a la reserva
         if (
             turno.paymentTransactionId &&
-            turno.paymentTransactionId !== id
+            turno.paymentTransactionId !== transaction.id
         ) {
 
             console.error(
-                "Wompi: conflicto de transacciones:",
+                "Wompi: conflicto de transacciones para:",
                 reference
             );
 
@@ -150,243 +155,76 @@ const wompiWebhook = async (req, res) => {
         }
 
         // =====================================
-        // PAGOS YA CONFIRMADOS
+        // 8. CONCILIACIÓN CENTRALIZADA
         // =====================================
 
-        if (turno.paymentStatus === "PAID") {
+        // Esta función también es utilizada
+        // por paymentController.js.
+        //
+        // Valida referencia, importe, moneda,
+        // estado y condiciones de actualización.
+        //
+        // Los cambios se aplican mediante
+        // operaciones atómicas en MongoDB.
 
-            // Evento repetido de un pago ya procesado
-            if (
-                turno.paymentTransactionId === id &&
-                status === "APPROVED" &&
-                turno.paymentAmount === amount_in_cents &&
-                turno.paymentCurrency === currency
-            ) {
-                return res.status(200).json({
-                    received: true,
-                    alreadyProcessed: true
-                });
-            }
-
-            // Una anulación posterior requiere conciliación.
-            // No liberar automáticamente una reserva pagada.
-            console.error(
-                "Wompi: pago confirmado requiere revisión:",
-                reference,
-                status
+        const result =
+            await reconcileVerifiedTransaction(
+                turno,
+                transaction
             );
-
-            return res.status(409).json({
-                message:
-                    "El pago confirmado requiere revisión administrativa."
-            });
-        }
-
-        // No confirmar automáticamente reservas cerradas.
-        if (
-            turno.estado !== "pendiente" ||
-            turno.paymentStatus !== "PENDING"
-        ) {
-            console.error(
-                "Wompi: reserva no disponible para confirmación:",
-                reference,
-                status
-            );
-
-            return res.status(409).json({
-                message:
-                    "El pago requiere conciliación administrativa."
-            });
-        }
-
-        // Condiciones comunes para actualizaciones atómicas
-        const filter = {
-            _id: turno._id,
-
-            estado: "pendiente",
-
-            paymentStatus: "PENDING",
-
-            paymentProvider: "WOMPI",
-
-            paymentEnvironment: "sandbox",
-
-            paymentReference: reference,
-
-            "paymentAttemptSnapshot.amount": amount_in_cents,
-
-            "paymentAttemptSnapshot.currency": currency,
-
-            $or: [
-                { paymentTransactionId: null },
-                { paymentTransactionId: id }
-            ]
-        };
 
         // =====================================
-        // PAGO APROBADO
+        // 9. REGISTRAR RESULTADO
         // =====================================
 
-        if (status === "APPROVED") {
-
-            const updated = await Turno.findOneAndUpdate(
-                filter,
-                {
-                    $set: {
-
-                        paymentTransactionId: id,
-
-                        wompiTransactionStatus: "APPROVED",
-
-                        paymentStatus: "PAID",
-
-                        paymentAmount: amount_in_cents,
-
-                        paymentCurrency: currency,
-
-                        paymentProcessing: false,
-
-                        estado: "confirmado",
-
-                        paidAt: new Date(),
-
-                        paymentVerifiedAt: new Date()
-                    }
-                },
-                {
-                    new: true,
-                    runValidators: true
-                }
-            );
-
-            if (!updated) {
-
-                // Comprobar si otro evento simultáneo
-                // ya confirmó el mismo pago.
-                const current = await Turno.findById(
-                    turno._id
-                );
-
-                if (
-                    current?.paymentStatus === "PAID" &&
-                    current.paymentTransactionId === id &&
-                    current.paymentAmount === amount_in_cents &&
-                    current.paymentCurrency === currency
-                ) {
-                    return res.status(200).json({
-                        received: true,
-                        alreadyProcessed: true
-                    });
-                }
-
-                return res.status(409).json({
-                    message:
-                        "No fue posible confirmar la reserva automáticamente."
-                });
-            }
+        if (result.confirmed) {
 
             console.log(
                 "Wompi: pago aprobado y reserva confirmada:",
                 reference
             );
-
-            // El correo de confirmación se incorporará
-            // después de verificar esta integración.
-
-            return res.status(200).json({
-                received: true,
-                confirmed: true
-            });
         }
 
-        // =====================================
-        // PAGO PENDIENTE
-        // =====================================
+        if (result.alreadyProcessed) {
 
-        if (status === "PENDING") {
-
-            const updated = await Turno.findOneAndUpdate(
-                {
-                    ...filter,
-                    wompiTransactionStatus: {
-                        $in: [null, "PENDING"]
-                    }
-                },
-                {
-                    $set: {
-                        paymentTransactionId: id,
-                        wompiTransactionStatus: "PENDING",
-                        paymentVerifiedAt: new Date()
-                    }
-                },
-                {
-                    new: true,
-                    runValidators: true
-                }
+            console.log(
+                "Wompi: evento duplicado procesado:",
+                reference
             );
-
-            if (!updated) {
-                return res.status(409).json({
-                    message:
-                        "La transacción cambió de estado."
-                });
-            }
-
-            return res.status(200).json({
-                received: true,
-                pending: true
-            });
         }
 
-        // =====================================
-        // PAGOS RECHAZADOS, ANULADOS O CON ERROR
-        // =====================================
-
-        if (
-            ["DECLINED", "VOIDED", "ERROR"].includes(status)
-        ) {
-
-            const updated = await Turno.findOneAndUpdate(
-                filter,
-                {
-                    $set: {
-                        paymentTransactionId: id,
-                        wompiTransactionStatus: status,
-                        paymentProcessing: false,
-                        paymentVerifiedAt: new Date()
-                    }
-                },
-                {
-                    new: true,
-                    runValidators: true
-                }
-            );
-
-            if (!updated) {
-                return res.status(409).json({
-                    message:
-                        "La reserva cambió de estado."
-                });
-            }
+        if (result.requiresReconciliation) {
 
             console.warn(
-                "Wompi: transacción requiere conciliación:",
+                "Wompi: transacción pendiente de revisión:",
                 reference,
-                status
+                transaction.status
+            );
+        }
+
+        // =====================================
+        // 10. RESPONDER A WOMPI
+        // =====================================
+
+        if (result.httpStatus !== 200) {
+
+            console.error(
+                "Wompi: conciliación no completada:",
+                reference,
+                result.message
             );
 
-            // No liberar todavía el horario.
-            // Primero implementaremos la conciliación
-            // y las reglas de reintentos de pago.
-
-            return res.status(200).json({
+            return res.status(
+                result.httpStatus
+            ).json({
                 received: true,
-                requiresReconciliation: true
+                reconciled: false
             });
         }
 
         return res.status(200).json({
-            received: true
+            received: true,
+            reconciled: true
         });
 
     } catch (error) {
@@ -398,19 +236,19 @@ const wompiWebhook = async (req, res) => {
             );
 
             return res.status(409).json({
-                message:
-                    "Existe un conflicto de transacciones."
+                received: true,
+                reconciled: false
             });
         }
 
         console.error(
-            "Error procesando webhook de Wompi:",
+            "Error en webhook de Wompi:",
             error.message
         );
 
         return res.status(500).json({
             message:
-                "No fue posible procesar el evento de Wompi."
+                "No fue posible procesar el evento."
         });
     }
 };

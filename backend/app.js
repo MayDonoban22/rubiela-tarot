@@ -1,95 +1,113 @@
-require('dotenv').config();
 
-const express = require('express');
+require("dotenv").config();
 
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
+const morgan = require("morgan");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
-const morgan = require('morgan');
+// =====================================
+// ROUTES
+// =====================================
 
-const helmet = require('helmet');
+const authRoutes = require("./routes/auth.routes");
+const usersRoutes = require("./routes/users.routes");
+const serviciosRoutes = require("./routes/services.routes");
+const turnosRoutes = require("./routes/turnos.routes");
+const contactRoutes = require("./routes/contact.routes");
+const horoscopeRoutes = require("./routes/horoscope.routes");
+const adminRoutes = require("./routes/admin.routes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
-const rateLimit = require('express-rate-limit');
+// Webhook de Wompi
+const wompiWebhookRoutes = require(
+    "./routes/wompiWebhookRoutes"
+);
 
+// =====================================
+// MIDDLEWARE
+// =====================================
 
-/* ROUTES */
-
-const authRoutes = require('./routes/auth.routes');
-
-const usersRoutes = require('./routes/users.routes');
-
-const serviciosRoutes = require('./routes/services.routes');
-
-const turnosRoutes = require('./routes/turnos.routes');
-
-const contactRoutes = require('./routes/contact.routes');
-
-const horoscopeRoutes = require('./routes/horoscope.routes');
-
-const adminRoutes = require('./routes/admin.routes');
-
-const paymentRoutes = require('./routes/paymentRoutes');
-
-const stripeWebhookRoutes = require("./routes/stripeWebhookRoutes");
-
-
-/* MIDDLEWARE */
-
-const errorMiddleware = require('./middlewares/error.middleware');
+const errorMiddleware = require(
+    "./middlewares/error.middleware"
+);
 
 const app = express();
 
-
-/* STRIPE WEBHOOK FIRST */
-
-app.use("/api/webhook", stripeWebhookRoutes);
-
-
-/* NORMAL MIDDLEWARE */
-
-app.use(cors());
-
-app.use(express.json());
-
-app.use(morgan('dev'));
+// =====================================
+// CONFIGURACIÓN GENERAL
+// =====================================
 
 app.use(helmet());
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+app.use(cors());
+
+app.use(morgan("dev"));
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100
+});
 
 app.use(limiter);
 
+// =====================================
+// JSON BODY PARSER
+// =====================================
 
-/* API ROUTES */
+app.use(express.json({
+    limit: "100kb"
+}));
 
-app.use('/api/auth', authRoutes);
+// =====================================
+// WOMPI WEBHOOK
+// =====================================
 
-app.use('/api/users', usersRoutes);
+// Wompi no utiliza JWT de nuestros usuarios.
+// La autenticidad de los eventos se verifica
+// en wompiWebhookController.js.
 
-app.use('/api/servicios', serviciosRoutes);
+app.use(
+    "/api/webhook",
+    wompiWebhookRoutes
+);
 
-app.use('/api/turnos', turnosRoutes);
+// =====================================
+// API ROUTES
+// =====================================
 
-app.use('/api/contact', contactRoutes);
+app.use("/api/auth", authRoutes);
 
-app.use('/api/horoscope', horoscopeRoutes);
+app.use("/api/users", usersRoutes);
 
-app.use('/api/admin', adminRoutes);
+app.use("/api/servicios", serviciosRoutes);
 
-app.use('/api/payments', paymentRoutes);
+app.use("/api/turnos", turnosRoutes);
 
+app.use("/api/contact", contactRoutes);
 
-/* HEALTH */
+app.use("/api/horoscope", horoscopeRoutes);
 
-app.get('/api/health', (req, res) => {
+app.use("/api/admin", adminRoutes);
 
-    res.json({ status: 'ok', message: 'API funcionando correctamente' });
+app.use("/api/payments", paymentRoutes);
 
+// =====================================
+// HEALTH CHECK
+// =====================================
+
+app.get("/api/health", (req, res) => {
+    return res.json({
+        status: "ok",
+        message: "API funcionando correctamente"
+    });
 });
 
-
-/* ERRORS */
+// =====================================
+// ERROR HANDLING
+// =====================================
 
 app.use(errorMiddleware);
-
 
 module.exports = app;

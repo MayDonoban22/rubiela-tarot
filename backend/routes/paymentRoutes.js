@@ -5,21 +5,42 @@ const router = express.Router();
 
 const auth = require("../middlewares/auth.middleware");
 
-// Ruta temporalmente deshabilitada durante la migración
-// del sistema de pagos de Stripe a Wompi.
+const {
+    createPaymentSession,
+    reconcilePayment
+} = require("../controllers/paymentController");
+
+// =====================================
+// WOMPI - PREPARAR CHECKOUT
+// =====================================
+
+// Genera los datos del Checkout de Wompi
+// para una reserva que pertenece al usuario.
 //
-// Se conserva la URL para evitar solicitudes hacia
-// un sistema de pago que ya no utilizaremos.
+// Requiere autenticación JWT.
 
 router.post(
     "/create-session/:turnoId",
     auth,
-    (req, res) => {
-        return res.status(503).json({
-            message:
-                "El sistema de pagos está temporalmente deshabilitado. Próximamente estará disponible mediante Wompi."
-        });
-    }
+    createPaymentSession
+);
+
+// =====================================
+// WOMPI - CONCILIAR TRANSACCIÓN
+// =====================================
+
+// Consulta directamente a Wompi el estado
+// de una transacción identificada.
+//
+// El usuario solamente puede consultar
+// sus propias reservas.
+//
+// Requiere autenticación JWT.
+
+router.get(
+    "/reconcile/:turnoId",
+    auth,
+    reconcilePayment
 );
 
 module.exports = router;
