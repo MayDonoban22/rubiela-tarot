@@ -10,13 +10,15 @@ const {
     reconcilePayment
 } = require("../controllers/paymentController");
 
+const {
+    recoverPayment
+} = require("../controllers/wompiRecoveryController");
+
 // =====================================
 // WOMPI - PREPARAR CHECKOUT
 // =====================================
 
-// Genera los datos del Checkout de Wompi
-// para una reserva que pertenece al usuario.
-//
+// Prepara los datos del pago de una reserva.
 // Requiere autenticación JWT.
 
 router.post(
@@ -29,18 +31,31 @@ router.post(
 // WOMPI - CONCILIAR TRANSACCIÓN
 // =====================================
 
-// Consulta directamente a Wompi el estado
-// de una transacción identificada.
-//
-// El usuario solamente puede consultar
-// sus propias reservas.
-//
-// Requiere autenticación JWT.
+// Consulta una transacción previamente
+// identificada y verifica su estado.
 
 router.get(
     "/reconcile/:turnoId",
     auth,
     reconcilePayment
+);
+
+// =====================================
+// WOMPI - RECUPERAR PAGO
+// =====================================
+
+// Recibe el ID de transacción devuelto
+// por Wompi después del Checkout.
+//
+// El backend consulta directamente a
+// Wompi y valida el resultado.
+//
+// Requiere autenticación JWT.
+
+router.post(
+    "/recover/:turnoId",
+    auth,
+    recoverPayment
 );
 
 module.exports = router;
