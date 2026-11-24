@@ -1,132 +1,645 @@
 import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import AppContext from "../contexts/AppContext";
-import SidebarHoroscopo from "../components/SidebarHoroscopo";
+import { Link, useNavigate } from "react-router-dom";
+
 import {
+  FaArrowRight,
   FaHeart,
-  FaAmbulance,
+  FaHeartbeat,
   FaMoneyBillWave,
   FaStar,
-  FaBook,
+  FaBookOpen,
+  FaPlay,
+  FaCalendarAlt,
+  FaShieldAlt,
 } from "react-icons/fa";
+
+import AppContext from "../contexts/AppContext";
+import SidebarHoroscopo from "../components/SidebarHoroscopo";
+
+// =====================================
+// TEMAS DE ORIENTACIÓN ESPIRITUAL
+// =====================================
+
+const spiritualTopics = [
+  {
+    title: "Amor y relaciones",
+    description:
+      "Un espacio de reflexión para comprender tus vínculos, emociones y decisiones.",
+    icon: FaHeart,
+    number: "01",
+  },
+  {
+    title: "Bienestar personal",
+    description:
+      "Encuentra un momento de tranquilidad, escucha y conexión contigo mismo.",
+    icon: FaHeartbeat,
+    number: "02",
+  },
+  {
+    title: "Prosperidad",
+    description:
+      "Explora tus aspiraciones, oportunidades y proyectos desde una mirada espiritual.",
+    icon: FaMoneyBillWave,
+    number: "03",
+  },
+  {
+    title: "Nuevos caminos",
+    description:
+      "Reflexiona sobre los cambios, las posibilidades y las decisiones importantes.",
+    icon: FaStar,
+    number: "04",
+  },
+  {
+    title: "Oraciones personalizadas",
+    description:
+      "Conoce un acompañamiento espiritual pensado para tus intenciones personales.",
+    icon: FaBookOpen,
+    number: "05",
+  },
+];
+
+// =====================================
+// COMPONENTE HOME
+// =====================================
 
 function Home() {
   const { isLoggedIn } = useContext(AppContext);
+
   const navigate = useNavigate();
 
   const handleAgendaClick = () => {
     if (isLoggedIn) {
       navigate("/agenda");
-    } else {
-      navigate("/login", { state: { from: { pathname: "/agenda" } } });
+      return;
     }
+
+    navigate("/login", {
+      state: {
+        from: {
+          pathname: "/agenda",
+        },
+      },
+    });
   };
 
   return (
-    <div className="w-full">
+    <main className="w-full min-w-0 overflow-x-clip">
+      {/* CONSERVAMOS EL HORÓSCOPO ORIGINAL */}
       <SidebarHoroscopo />
-      <section className="relative w-full">
-        <img
-          src="/assets/images/Frame-first-page.png"
-          alt="Banner"
-          className="w-full max-h-[900px] object-cover object-center absolute h-full"
+
+      {/* ===================================
+          HERO — BANNER EDITORIAL
+          Fondo real + retrato temporal de Rubiela
+         =================================== */}
+      <section
+        className="relative isolate overflow-hidden bg-[#101827] text-[#F8F6F0]"
+        aria-labelledby="home-heading"
+      >
+        {/* Fondo decorativo independiente del contenido */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('/assets/images/hero-bg-spiritual.jpg')",
+          }}
         />
-        <div className="relative inset-0 flex flex-col lg:flex-row items-center justify-between px-4 sm:px-6 md:px-10 lg:px-[65px] py-[44px] gap-6 md:gap-8 lg:gap-10 z-10">
-          <div className="w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[298px] lg:h-[298px] overflow-hidden rounded-full">
-            <img
-              src="/assets/images/profile-avatar.png"
-              alt="Rubiela Pineda"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <div className="flex flex-col items-center justify-center text-tertiary text-center max-w-[600px] gap-1 md:gap-1.5 lg:gap-2 px-2 pr-0 lg:pr-[171px] text-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-            <h1 className="text-[32px] md:text-[48px] lg:text-[70px] font-Abhaya text-[var(--color-goldLight)] uppercase leading-tight">
-              LUZ DE RUBÍ
+
+        {/* Overlay para mantener legibilidad sin ocultar la fotografía */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,17,35,0.96)_0%,rgba(12,23,46,0.87)_43%,rgba(16,29,53,0.57)_74%,rgba(16,29,53,0.34)_100%)]"
+        />
+
+        <div className="ldr-container relative z-10 grid w-full min-w-0 items-center gap-10 py-12 sm:py-16 md:py-20 lg:min-h-[610px] lg:grid-cols-2 lg:gap-10 lg:py-20">
+          {/* Texto siempre al frente y alineado a la izquierda en escritorio */}
+          <div className="ldr-animate-enter min-w-0 w-full max-w-[620px] text-center lg:text-left">
+            <span className="mb-6 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-[#D6B967]/30 bg-[#101827]/40 px-3 py-2 text-center text-[9px] font-medium uppercase tracking-[0.12em] text-[#E8D8B5] backdrop-blur-sm sm:px-5 sm:text-[11px] sm:tracking-[0.19em]">
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 rounded-full bg-[#D6B967]"
+              />
+              Un espacio para conectar contigo
+            </span>
+
+            <h1
+              id="home-heading"
+              className="max-w-full text-[clamp(2.7rem,9vw,5.6rem)] font-normal leading-[1.08] tracking-[-0.045em] text-[#F8F6F0] [overflow-wrap:break-word]"
+              style={{
+                fontFamily:
+                  '"Baskerville", "Iowan Old Style", "Palatino Linotype", Georgia, serif',
+              }}
+            >
+              Luz de{" "}
+              <span className="font-normal italic text-[#E5C776]">Rubí</span>
             </h1>
-            <h2 className="text-[20px] md:text-[26px] lg:text-[32px] font-Abhaya text-[var(--color-goldLight)] leading-tight">
-              Rubiela
-            </h2>
-            <p className="text-[15px] md:text-[18px] lg:text-[22px] font-Abhaya leading-tight">
-              Descubre tu camino espiritual después
-            </p>
-            <p className="text-[13px] md:text-[15px] lg:text-[18px] font-Abhaya leading-tight">
-              Tarot • Consejería espiritual
-            </p>
-            <p className="text-[12px] md:text-[13px] lg:text-[14px] font-Abhaya leading-tight">
-              Atracción al dinero • Trabajo • Amor • Suerte • Salud
+
+            <div
+              aria-hidden="true"
+              className="mt-6 h-px w-20 bg-gradient-to-r from-[#D6B967] to-transparent mx-auto lg:mx-0"
+            />
+
+            <p
+              className="mt-6 text-[clamp(1.25rem,4.5vw,1.9rem)] font-normal leading-[1.3] tracking-[-0.01em] text-[#E8D8B5]"
+              style={{
+                fontFamily:
+                  '"Baskerville", "Iowan Old Style", "Palatino Linotype", Georgia, serif',
+              }}
+            >
+              Orientación espiritual y conexión interior
             </p>
 
-            <div className="mt-4 md:mt-5 w-full flex justify-center">
+            <p className="mx-auto mt-5 max-w-[540px] text-[14px] leading-[1.75] text-white/80 sm:text-[15px] sm:leading-[1.9] lg:mx-0">
+              Descubre un espacio de acompañamiento junto a Rubiela, donde el
+              tarot y la reflexión espiritual te invitan a mirar tu camino desde
+              una perspectiva diferente.
+            </p>
+
+            <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 min-[420px]:items-center sm:flex-row lg:justify-start">
               <button
+                type="button"
                 onClick={handleAgendaClick}
-                className="px-6 py-2 rounded-md text-tertiary text-[14px] md:text-[16px] lg:text-[18px] font-semibold bg-gradient-to-r from-[var(--color-goldLight)] to-[var(--color-goldDark)] hover:shadow-lg transition cursor-pointer w-full md:w-auto"
+                className="group inline-flex min-h-[48px] w-full items-center justify-center gap-3 rounded-full border border-[#D9BC71] bg-gradient-to-r from-[#B99547] via-[#E2C476] to-[#BA964B] px-7 py-3 text-[13px] font-semibold tracking-[0.01em] text-[#111827] shadow-[0_12px_30px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(187,155,73,0.24)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E2C476] sm:w-auto"
               >
-                Agendar Consulta
+                Agendar consulta
+                <FaArrowRight
+                  aria-hidden="true"
+                  size={12}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
               </button>
+              <Link
+                to="/sobre-mi"
+                className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full border border-[#E2C476]/65 bg-[#101827]/35 px-7 py-3 text-[13px] font-medium tracking-[0.02em] text-[#F8F6F0] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#E2C476] hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E2C476] sm:w-auto"
+              >
+                Conoce a Rubiela
+              </Link>
+            </div>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-[11px] text-white/70 sm:text-xs lg:justify-start">
+              <span className="inline-flex items-center gap-2">
+                <FaCalendarAlt aria-hidden="true" className="text-[#D6B967]" />
+                Consultas con cita previa
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <FaShieldAlt aria-hidden="true" className="text-[#D6B967]" />
+                Atención personalizada
+              </span>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="mt-[50px] px-4 md:px-10 lg:px-[95px] text-center mb-[80px]">
-        <h2 className="text-[36px] md:text-[48px] lg:text-[60px] font-Abhaya text-[#7C7C70] mb-10 mx-auto max-w-[800px]">
-          Nuestros servicios
-        </h2>
-
-        <div className="flex flex-wrap justify-center gap-6 max-w-[1200px] mx-auto">
-          {[
-            {
-              icon: (
-                <FaHeart className="text-[#B09245] w-[40px] h-[45px] mb-2" />
-              ),
-              title: "Amor",
-              text: "Encuentra claridad en tus relaciones y camino al amor verdadero.",
-            },
-            {
-              icon: (
-                <FaAmbulance className="text-[#B09245] w-[40px] h-[45px] mb-2" />
-              ),
-              title: "Salud",
-              text: "Orientación espiritual para mantener el bienestar físico y mental.",
-            },
-            {
-              icon: (
-                <FaMoneyBillWave className="text-[#B09245] w-[40px] h-[45px] mb-2" />
-              ),
-              title: "Prosperidad",
-              text: "Guía para atraer abundancia y prosperidad económica en tu vida.",
-            },
-            {
-              icon: (
-                <FaStar className="text-[#B09245] w-[40px] h-[45px] mb-2" />
-              ),
-              title: "Suerte",
-              text: "Atrae la buena fortuna y las energías positivas a tu vida y destino.",
-            },
-            {
-              icon: (
-                <FaBook className="text-[#B09245] w-[30px] h-[40px] mb-2" />
-              ),
-              title: "Oraciones personalizadas",
-              text: "Oraciones adaptadas a tus necesidades espirituales específicas.",
-            },
-          ].map((item, i) => (
+          {/* Imagen temporal: reemplazaremos SOLO esta ruta por la foto oficial */}
+          <div className="relative mx-auto w-full min-w-0 max-w-[260px] sm:max-w-[330px] lg:ml-auto lg:max-w-[390px]">
             <div
-              key={i}
-              className="w-[90%] sm:w-[300px] h-[200px] rounded-xl bg-gradient-to-l from-primary to-secondary flex flex-col items-center justify-center px-6 py-4 text-center"
-            >
-              {item.icon}
-              <h3 className="text-[20px] md:text-[22px] text-[#B09245] font-Abhaya mb-1">
-                {item.title}
-              </h3>
-              <p className="text-[16px] md:text-[18px] text-tertiary font-Abhaya">
-                {item.text}
+              aria-hidden="true"
+              className="absolute inset-8 rounded-full bg-[#BB9B49]/20 blur-[65px]"
+            />
+            <div className="relative overflow-hidden rounded-[28px] border border-[#D6B967]/30 bg-[#192846]/55 p-2 shadow-[0_25px_70px_rgba(0,0,0,0.32)] backdrop-blur-sm sm:p-3">
+              <img
+                src="/assets/images/profile-avatar.png"
+                alt="Ilustración temporal de Luz de Rubí, pendiente de fotografía de Rubiela"
+                className="aspect-[4/5] w-full rounded-[20px] object-cover object-center"
+                fetchPriority="high"
+              />
+            </div>
+            <div className="relative mx-auto -mt-5 w-fit rounded-xl border border-[#BB9B49]/40 bg-[#101827]/95 px-6 py-3 text-center shadow-xl backdrop-blur-sm">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-[#E8D8B5]/70">
+                Luz de Rubí
+              </p>
+              <p
+                className="mt-1 text-[22px] font-normal italic text-[#D6B967]"
+                style={{
+                  fontFamily:
+                    '"Baskerville", "Iowan Old Style", "Palatino Linotype", Georgia, serif',
+                }}
+              >
+                Guía espiritual
               </p>
             </div>
-          ))}
+          </div>
         </div>
       </section>
-    </div>
+
+      {/* ===================================
+          INTRODUCCIÓN
+         =================================== */}
+
+      <section
+        className="relative overflow-hidden bg-[linear-gradient(180deg,#E9E2D5_0%,#F3EDE4_48%,#F8F6F0_100%)] py-16 sm:py-20 lg:py-24"
+        aria-labelledby="welcome-heading"
+      >
+        <div
+          className="
+            ldr-container
+            mx-auto max-w-[900px]
+            text-center
+          "
+        >
+          <span className="ldr-eyebrow">Un momento para ti</span>
+
+          <h2
+            id="welcome-heading"
+            className="ldr-heading mt-5 text-[clamp(2.25rem,7.5vw,4.5rem)]"
+          >
+            Cada historia merece
+            <span className="block text-[#8B733D]">ser escuchada.</span>
+          </h2>
+
+          <div
+            aria-hidden="true"
+            className="
+              ldr-gold-line
+              mx-auto mt-7
+            "
+          />
+
+          <p
+            className="
+              ldr-lead
+              mx-auto mt-7
+            "
+          >
+            Hay momentos en los que buscamos claridad, tranquilidad o
+            simplemente un espacio para reflexionar. Luz de Rubí nace con el
+            propósito de ofrecer una experiencia cercana, respetuosa y llena de
+            significado.
+          </p>
+        </div>
+      </section>
+
+      {/* DIVISOR VISUAL ENTRE INTRODUCCIÓN Y SERVICIOS */}
+      <div
+        aria-hidden="true"
+        className="relative h-px w-full bg-[linear-gradient(90deg,transparent_0%,rgba(187,155,73,0.18)_20%,rgba(187,155,73,0.70)_50%,rgba(187,155,73,0.18)_80%,transparent_100%)]"
+      >
+        <span className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rotate-45 border border-[#BB9B49]/70 bg-[#F8F6F0]" />
+      </div>
+
+      {/* ===================================
+          TEMAS ESPIRITUALES
+         =================================== */}
+
+      <section
+        className="bg-[linear-gradient(180deg,#F8F6F0_0%,#FCFAF6_48%,#F5F0E8_100%)] pb-16 pt-14 sm:pb-20 sm:pt-18 lg:pb-24 lg:pt-20"
+        aria-labelledby="services-heading"
+      >
+        <div className="ldr-container">
+          <div className="mx-auto mb-9 max-w-[760px] text-center sm:mb-12">
+            <span className="ldr-eyebrow">Explora tus inquietudes</span>
+
+            <h2
+              id="services-heading"
+              className="ldr-heading mt-4 text-[clamp(2.25rem,7.5vw,4.5rem)]"
+            >
+              Nuestros espacios
+              <span className="block text-[#8B733D]">de orientación</span>
+            </h2>
+
+            <p
+              className="
+                ldr-lead
+                mx-auto mt-5
+              "
+            >
+              Conoce algunos de los temas que pueden formar parte de una
+              conversación espiritual.
+            </p>
+          </div>
+
+          <div
+            className="
+              grid gap-5
+              sm:grid-cols-2
+              lg:grid-cols-3
+            "
+          >
+            {spiritualTopics.map((topic) => {
+              const Icon = topic.icon;
+
+              return (
+                <article
+                  key={topic.number}
+                  className="
+                    ldr-card
+                    ldr-card--interactive
+                    group relative
+                    flex min-h-[275px]
+                    flex-col p-7
+                    sm:p-8
+                  "
+                >
+                  <div
+                    className="
+                      mb-7 flex
+                      items-start justify-between
+                    "
+                  >
+                    <div
+                      className="
+                        flex h-14 w-14
+                        items-center justify-center
+                        rounded-2xl
+                        bg-[#BB9B49]/10
+                        text-[#9A7B36]
+                        transition-colors
+                        duration-300
+                        group-hover:bg-[#BB9B49]/20
+                      "
+                    >
+                      <Icon aria-hidden="true" size={23} />
+                    </div>
+
+                    <span
+                      className="
+                        font-Abhaya
+                        text-2xl
+                        text-[#BB9B49]/55
+                      "
+                    >
+                      {topic.number}
+                    </span>
+                  </div>
+
+                  <h3
+                    className="
+                      font-Abhaya
+                      text-[25px]
+                      font-bold
+                      leading-tight
+                      text-[#192846]
+                    "
+                  >
+                    {topic.title}
+                  </h3>
+
+                  <p
+                    className="
+                      mt-3 text-sm
+                      leading-[1.8]
+                      text-[#6F7480]
+                    "
+                  >
+                    {topic.description}
+                  </p>
+
+                  <span
+                    aria-hidden="true"
+                    className="mt-auto inline-flex items-center pt-5 text-[#BB9B49] transition-transform duration-300 group-hover:rotate-45 group-hover:scale-125"
+                  >
+                    <FaStar size={12} />
+                  </span>
+                </article>
+              );
+            })}
+
+            {/* TARJETA DE ACCIÓN */}
+            <div
+              className="
+                ldr-card ldr-card--navy
+                relative flex
+                min-h-[275px]
+                flex-col justify-between
+                p-7 sm:p-8
+              "
+            >
+              <div>
+                <span
+                  className="
+                    text-[11px]
+                    uppercase
+                    tracking-[0.2em]
+                    text-[#D6B967]
+                  "
+                >
+                  Consultas de Luz de Rubí
+                </span>
+
+                <h3
+                  className="
+                    mt-5 font-Abhaya
+                    text-[28px]
+                    font-bold
+                    leading-tight
+                  "
+                >
+                  Comienza tu experiencia espiritual.
+                </h3>
+
+                <p
+                  className="
+                    mt-3 text-sm
+                    leading-[1.8]
+                    text-white/70
+                  "
+                >
+                  Descubre las consultas disponibles y elige la que mejor se
+                  adapte a lo que buscas.
+                </p>
+              </div>
+
+              <Link
+                to="/consultas"
+                className="
+                  mt-8 inline-flex
+                  items-center gap-3
+                  text-sm font-semibold
+                  text-[#D6B967]
+                  transition-all duration-300
+                  hover:gap-4
+                "
+              >
+                Explorar consultas
+                <FaArrowRight aria-hidden="true" size={13} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================================
+          PRESENTACIÓN EN VIDEO
+         =================================== */}
+
+      <section
+        className="relative bg-[linear-gradient(180deg,#192846_0%,#14213B_100%)] py-16 text-[#F8F6F0] sm:py-20 lg:py-24"
+        aria-labelledby="video-heading"
+      >
+        <div className="ldr-container grid w-full min-w-0 items-center gap-9 lg:grid-cols-2 lg:gap-14">
+          {/* MARCADOR VISUAL DEL FUTURO VIDEO */}
+          <div
+            className="
+              relative flex
+              aspect-video min-w-0
+              items-center justify-center
+              overflow-hidden
+              rounded-[28px]
+              border border-[#BB9B49]/30
+              bg-gradient-to-br
+              from-[#263D65]
+              via-[#192846]
+              to-[#101827]
+              shadow-[0_25px_65px_rgba(0,0,0,0.24)]
+            "
+          >
+            <div
+              aria-hidden="true"
+              className="
+                absolute inset-0
+                bg-[radial-gradient(circle_at_center,rgba(187,155,73,0.15),transparent_55%)]
+              "
+            />
+
+            <div
+              className="
+                relative z-10 flex
+                flex-col items-center
+                gap-5 text-center
+                px-5
+              "
+            >
+              <div
+                className="
+                  flex h-20 w-20
+                  items-center justify-center
+                  rounded-full
+                  border border-[#D6B967]/60
+                  bg-[#BB9B49]/10
+                  text-[#D6B967]
+                "
+                aria-hidden="true"
+              >
+                <FaPlay size={22} />
+              </div>
+
+              <div>
+                <p
+                  className="
+                    font-Abhaya
+                    text-[27px]
+                    text-[#E8D8B5]
+                  "
+                >
+                  Conoce a Rubiela
+                </p>
+
+                <p
+                  className="
+                    mt-2 text-xs
+                    text-white/60
+                  "
+                >
+                  Próximamente, su video de presentación
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* CONTENIDO */}
+          <div>
+            <span
+              className="
+                text-xs font-semibold
+                uppercase
+                tracking-[0.2em]
+                text-[#D6B967]
+              "
+            >
+              Detrás de Luz de Rubí
+            </span>
+
+            <h2
+              id="video-heading"
+              className="
+                ldr-heading
+                ldr-heading--light
+                mt-5
+              "
+            >
+              Una historia,
+              <span
+                className="
+                  block text-[#D6B967]
+                "
+              >
+                una esencia.
+              </span>
+            </h2>
+
+            <p
+              className="
+                mt-6 max-w-[530px]
+                text-[15px]
+                leading-[1.9]
+                text-white/70
+              "
+            >
+              Luz de Rubí tiene una persona y una historia detrás. Muy pronto
+              podrás conocer a Rubiela a través de un video en el que ella misma
+              compartirá su recorrido y su visión de la espiritualidad.
+            </p>
+
+            <Link
+              to="/sobre-mi"
+              className="
+                ldr-button ldr-button--light
+                mt-8
+              "
+            >
+              Descubrir su historia
+              <FaArrowRight aria-hidden="true" size={13} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================================
+          INVITACIÓN FINAL
+         =================================== */}
+
+      <section
+        className="bg-[linear-gradient(180deg,#F2ECE3_0%,#F8F6F0_38%,#F8F6F0_100%)] py-16 sm:py-20 lg:py-24"
+        aria-labelledby="closing-heading"
+      >
+        <div
+          className="
+            ldr-container
+            mx-auto max-w-[850px]
+            text-center
+          "
+        >
+          <span className="ldr-eyebrow">Tu espacio comienza aquí</span>
+
+          <h2
+            id="closing-heading"
+            className="ldr-heading mt-5 text-[clamp(2.25rem,7.5vw,4.5rem)]"
+          >
+            Date un momento
+            <span className="block text-[#8B733D]">para escucharte.</span>
+          </h2>
+
+          <p
+            className="
+              ldr-lead
+              mx-auto mt-6
+            "
+          >
+            Explora nuestras consultas y descubre una experiencia de orientación
+            espiritual creada para acompañarte con cercanía y respeto.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleAgendaClick}
+            className="
+              ldr-button ldr-button--gold
+              mt-8
+            "
+          >
+            Agendar mi consulta
+            <FaArrowRight aria-hidden="true" size={13} />
+          </button>
+        </div>
+      </section>
+    </main>
   );
 }
 

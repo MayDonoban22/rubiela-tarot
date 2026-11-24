@@ -1,26 +1,397 @@
 @import "tailwindcss";
 
+/* =========================================
+   LUZ DE RUBÍ
+   SISTEMA VISUAL — ELEGANCIA ESPIRITUAL
+   ========================================= */
+
 @theme {
+    /* Colores originales */
     --color-primary: #111827;
     --color-secondary: #3D578D;
-    --color-tertiary: #FFF;
+    --color-tertiary: #FFFFFF;
     --color-goldLight: #BB9B49;
     --color-goldDark: #554621;
     --color-softWhite: #D3CACA;
     --color-softBlueCards: #526B9F;
     --color-line: #D9D9D9;
-    --font-inter: 'Inter', sans-serif;
-    --font-Abhaya: 'Abhaya Libre', serif;
 
+    /* Nueva paleta complementaria */
+    --color-night: #101827;
+    --color-navy: #192846;
+    --color-royal: #263D65;
+    --color-ivory: #F8F6F0;
+    --color-cream: #F0EADF;
+    --color-champagne: #E8D8B5;
+    --color-goldSoft: #D6B967;
+    --color-ink: #252A36;
+    --color-muted: #6F7480;
+
+    /* Tipografías de la marca */
+    --font-inter: "Inter", sans-serif;
+    --font-Abhaya: "Abhaya Libre", serif;
 }
 
+/* =========================================
+   VARIABLES DE DISEÑO
+   ========================================= */
+
+:root {
+    font-family: var(--font-inter);
+    color: var(--color-ink);
+    background-color: var(--color-ivory);
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+
+    --ldr-radius-sm: 12px;
+    --ldr-radius-md: 18px;
+    --ldr-radius-lg: 28px;
+
+    --ldr-shadow-soft:
+        0 12px 40px rgba(17, 24, 39, 0.07);
+
+    --ldr-shadow-card:
+        0 20px 55px rgba(17, 24, 39, 0.11);
+
+    --ldr-shadow-gold:
+        0 12px 30px rgba(187, 155, 73, 0.17);
+
+    --ldr-transition:
+        260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* =========================================
+   BASE GLOBAL
+   ========================================= */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+img,
+video {
+    max-width: 100%;
+}
+
+::selection {
+    background: rgba(187, 155, 73, 0.28);
+    color: #111827;
+}
+
+/* =========================================
+   FONDO ORIGINAL DEL PROYECTO
+   ========================================= */
+
 .page {
-    background-image: url('/assets/background.png');
+    background-image: url("/assets/background.png");
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
     min-height: 100vh;
 }
+
+/* =========================================
+   CONTENEDORES EDITORIALES
+   ========================================= */
+
+.ldr-container {
+    width: min(100% - 40px, 1200px);
+    margin-inline: auto;
+}
+
+.ldr-section {
+    padding-block: clamp(72px, 9vw, 128px);
+}
+
+.ldr-section--compact {
+    padding-block: clamp(48px, 6vw, 88px);
+}
+
+/* =========================================
+   TIPOGRAFÍA PREMIUM
+   ========================================= */
+
+.ldr-eyebrow {
+    display: inline-block;
+
+    color: var(--color-goldDark);
+
+    font-family: var(--font-inter);
+    font-size: 0.72rem;
+    font-weight: 600;
+
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.ldr-heading {
+    margin: 0;
+
+    font-family: var(--font-Abhaya);
+    font-size: clamp(2.4rem, 4.7vw, 4.5rem);
+    font-weight: 800;
+
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+
+    color: var(--color-night);
+    text-wrap: balance;
+}
+
+.ldr-heading--light {
+    color: var(--color-ivory);
+}
+
+.ldr-heading--small {
+    font-size: clamp(1.9rem, 3.2vw, 3rem);
+}
+
+.ldr-lead {
+    max-width: 680px;
+
+    font-size: clamp(1rem, 1.3vw, 1.125rem);
+    font-weight: 400;
+
+    line-height: 1.85;
+    color: var(--color-muted);
+}
+
+.ldr-lead--light {
+    color: rgba(248, 246, 240, 0.82);
+}
+
+/* =========================================
+   LÍNEAS Y DETALLES DORADOS
+   ========================================= */
+
+.ldr-gold-line {
+    width: 58px;
+    height: 2px;
+
+    border-radius: 999px;
+    background: linear-gradient(90deg,
+            var(--color-goldDark),
+            var(--color-goldSoft));
+}
+
+.ldr-gold-text {
+    color: var(--color-goldLight);
+}
+
+/* =========================================
+   BOTONES DE LA MARCA
+   ========================================= */
+
+.ldr-button {
+    display: inline-flex;
+    min-height: 48px;
+
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    padding: 12px 25px;
+
+    border: 1px solid transparent;
+    border-radius: var(--ldr-radius-sm);
+
+    font-family: var(--font-inter);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+
+    text-align: center;
+    text-decoration: none;
+
+    transition:
+        transform var(--ldr-transition),
+        background-color var(--ldr-transition),
+        border-color var(--ldr-transition),
+        box-shadow var(--ldr-transition),
+        color var(--ldr-transition);
+}
+
+.ldr-button:focus-visible {
+    outline: 2px solid var(--color-goldSoft);
+    outline-offset: 4px;
+}
+
+.ldr-button:disabled {
+    opacity: 0.55;
+    transform: none;
+    box-shadow: none;
+}
+
+.ldr-button--gold {
+    background-color: var(--color-goldLight);
+    color: var(--color-night);
+    box-shadow: var(--ldr-shadow-gold);
+}
+
+.ldr-button--gold:not(:disabled):hover {
+    background-color: var(--color-goldSoft);
+    transform: translateY(-3px);
+    box-shadow:
+        0 16px 35px rgba(187, 155, 73, 0.25);
+}
+
+.ldr-button--outline {
+    background: transparent;
+    border-color: rgba(187, 155, 73, 0.75);
+    color: var(--color-goldDark);
+}
+
+.ldr-button--outline:not(:disabled):hover {
+    background: rgba(187, 155, 73, 0.09);
+    transform: translateY(-2px);
+}
+
+.ldr-button--light {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--color-ivory);
+}
+
+.ldr-button--light:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--color-goldSoft);
+}
+
+/* =========================================
+   TARJETAS INTERACTIVAS
+   ========================================= */
+
+.ldr-card {
+    overflow: hidden;
+
+    border: 1px solid rgba(187, 155, 73, 0.16);
+    border-radius: var(--ldr-radius-md);
+
+    background: #FFFFFF;
+    box-shadow: var(--ldr-shadow-soft);
+
+    transition:
+        transform var(--ldr-transition),
+        border-color var(--ldr-transition),
+        box-shadow var(--ldr-transition);
+}
+
+.ldr-card--interactive:hover {
+    transform: translateY(-6px);
+    border-color: rgba(187, 155, 73, 0.42);
+    box-shadow: var(--ldr-shadow-card);
+}
+
+.ldr-card--navy {
+    color: var(--color-ivory);
+
+    background: linear-gradient(145deg,
+            #111827 0%,
+            #263D65 100%);
+}
+
+/* =========================================
+   FONDOS DECORATIVOS
+   ========================================= */
+
+.ldr-surface-ivory {
+    background: var(--color-ivory);
+}
+
+.ldr-surface-navy {
+    color: var(--color-ivory);
+
+    background: linear-gradient(135deg,
+            #101827 0%,
+            #192846 58%,
+            #263D65 100%);
+}
+
+.ldr-surface-glow {
+    background:
+        radial-gradient(circle at 85% 15%,
+            rgba(187, 155, 73, 0.11),
+            transparent 34%),
+        radial-gradient(circle at 15% 85%,
+            rgba(61, 87, 141, 0.09),
+            transparent 38%),
+        var(--color-ivory);
+}
+
+/* =========================================
+   FORMULARIOS MODERNOS
+   ========================================= */
+
+.ldr-input {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+
+    padding: 12px 16px;
+
+    border: 1px solid #D8D9D9;
+    border-radius: var(--ldr-radius-sm);
+
+    background: #FFFFFF;
+    color: var(--color-ink);
+
+    font-size: 0.9375rem;
+
+    transition:
+        border-color var(--ldr-transition),
+        box-shadow var(--ldr-transition);
+}
+
+.ldr-input::placeholder {
+    color: #90949C;
+}
+
+.ldr-input:focus {
+    outline: none;
+    border-color: var(--color-goldLight);
+    box-shadow:
+        0 0 0 4px rgba(187, 155, 73, 0.12);
+}
+
+.ldr-input:disabled {
+    background: #F2F2F2;
+    color: #777777;
+}
+
+/* =========================================
+   ANIMACIONES ORIGINALES DE LUZ DE RUBÍ
+   ========================================= */
 
 .perspective {
     perspective: 1000px;
@@ -65,12 +436,12 @@
 }
 
 @keyframes slide-down {
-    0% {
+    from {
         opacity: 0;
         transform: translateY(-20%);
     }
 
-    100% {
+    to {
         opacity: 1;
         transform: translateY(0);
     }
@@ -82,21 +453,96 @@
 
 @keyframes popIn {
     0% {
-        transform: scale(0.8);
         opacity: 0;
+        transform: scale(0.8);
     }
 
     80% {
-        transform: scale(1.05);
         opacity: 1;
+        transform: scale(1.05);
     }
 
     100% {
-        transform: scale(1);
         opacity: 1;
+        transform: scale(1);
     }
 }
 
 .animate-popIn {
     animation: popIn 0.4s ease-out forwards;
+}
+
+/* =========================================
+   NUEVAS ANIMACIONES SUTILES
+   ========================================= */
+
+@keyframes ldrFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ldr-animate-enter {
+    animation: ldrFadeUp 700ms ease-out both;
+}
+
+@keyframes ldrSoftFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.ldr-animate-float {
+    animation: ldrSoftFloat 6s ease-in-out infinite;
+}
+
+/* =========================================
+   ACCESIBILIDAD Y RESPONSIVE
+   ========================================= */
+
+@media (max-width: 640px) {
+    .ldr-container {
+        width: min(100% - 32px, 1200px);
+    }
+
+    .ldr-button {
+        min-height: 46px;
+        padding-inline: 20px;
+    }
+
+    .ldr-card--interactive:hover {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .ldr-animate-enter,
+    .ldr-animate-float,
+    .animate-fade-in-out,
+    .animate-slide-down,
+    .animate-popIn {
+        animation: none;
+    }
+
+    .ldr-button,
+    .ldr-card,
+    .ldr-input {
+        transition: none;
+    }
 }
