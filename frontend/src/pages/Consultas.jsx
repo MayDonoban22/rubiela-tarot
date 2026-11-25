@@ -11,35 +11,38 @@ import {
 import AppContext from "../contexts/AppContext";
 import { getServices } from "../services/services";
 
-// Las imágenes ya existen en frontend/public/assets/images.
-// Solo el servicio devuelto por el backend se puede reservar.
+// Las imágenes ya están en frontend/public/assets/images.
+// Solo los servicios encontrados en MongoDB pueden reservarse en línea.
 const suggestedServices = [
   {
     slug: "general",
     name: "Lectura de Tarot General",
     description:
       "Un encuentro para explorar distintas áreas de tu vida, tus inquietudes y los caminos que deseas considerar.",
-    image: "/assets/images/card-rubi.png",
+    image: "/assets/images/consulta-tarot-general.jpg",
     icon: FaMoon,
     imagePosition: "center",
+    examplePrice: 50,
   },
   {
     slug: "amor",
     name: "Tarot del Amor y las Relaciones",
     description:
       "Una lectura enfocada en los vínculos afectivos, la comunicación y las decisiones sentimentales.",
-    image: "/assets/images/amor.jpg",
+    image: "/assets/images/consulta-tarot-amor.jpg",
     icon: FaHeart,
     imagePosition: "center",
+    examplePrice: 200,
   },
   {
     slug: "prosperidad",
     name: "Tarot de Prosperidad y Trabajo",
     description:
       "Un espacio para reflexionar sobre proyectos, oportunidades y decisiones profesionales.",
-    image: "/assets/images/dinero.jpg",
+    image: "/assets/images/consulta-tarot-prosperidad.jpg",
     icon: FaSeedling,
     imagePosition: "center",
+    examplePrice: 200,
   },
 ];
 
@@ -86,6 +89,9 @@ function Consultas() {
       try {
         const response = await getServices();
         if (!active) return;
+        if (!Array.isArray(response)) {
+          throw new Error("Formato de servicios inesperado");
+        }
         setServices(response);
         setError("");
       } catch (err) {
@@ -122,6 +128,7 @@ function Consultas() {
         duration: match?.duracion,
         price: match?.precio,
         available: Boolean(match),
+        backendService: Boolean(match),
       };
     });
 
@@ -135,10 +142,12 @@ function Consultas() {
         description: service.descripcion,
         duration: service.duracion,
         price: service.precio,
-        image: "/assets/images/card-rubi.png",
+        image: "/assets/images/consulta-tarot-general.jpg",
         imagePosition: "center",
         icon: FaStar,
         available: true,
+        backendService: true,
+        examplePrice: undefined,
       }));
 
     return [...main, ...additional];
@@ -159,70 +168,65 @@ function Consultas() {
 
   return (
     <main className="w-full min-w-0 overflow-x-clip bg-[#F8F6F0] font-inter">
-      {/* HERO: mismo lenguaje visual que Home; sin sustituir su identidad. */}
+      {/* HERO CINEMATOGRÁFICO: sin fotografías incrustadas con texto. */}
       <section
         aria-labelledby="consultas-heading"
-        className="relative isolate overflow-hidden bg-[#101827] text-[#F8F6F0]"
+        className="relative isolate flex min-h-[370px] items-center overflow-hidden bg-[#101827] text-[#F8F6F0] sm:min-h-[390px] lg:min-h-[430px]"
       >
+        <picture
+          aria-hidden="true"
+          className="absolute inset-0 z-0 block h-full w-full"
+        >
+          <source
+            media="(max-width: 639px)"
+            srcSet="/assets/images/consultas-banner-mobile.jpg"
+          />
+          <img
+            src="/assets/images/consultas-banner-desktop.jpg"
+            alt=""
+            fetchPriority="high"
+            className="h-full w-full object-cover object-[72%_center] sm:object-center"
+          />
+        </picture>
+        {/* Overlay suave: oscurece el área del texto sin ocultar las cartas. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-cover bg-center opacity-45"
-          style={{
-            backgroundImage: "url('/assets/images/hero-bg-spiritual.jpg')",
-          }}
+          className="absolute inset-0 z-0 bg-[linear-gradient(90deg,rgba(7,15,30,0.93)_0%,rgba(10,20,39,0.82)_39%,rgba(11,24,45,0.22)_78%,rgba(9,18,33,0.10)_100%)] max-sm:bg-[linear-gradient(180deg,rgba(8,16,32,0.94)_0%,rgba(8,16,32,0.86)_54%,rgba(8,16,32,0.2)_100%)]"
         />
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,17,33,0.97)_0%,rgba(13,27,48,0.94)_47%,rgba(19,37,64,0.72)_100%)]"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-20 top-0 h-[400px] w-[400px] rounded-full bg-[#BB9B49]/10 blur-[100px]"
-        />
-
-        <div className="ldr-container relative z-10 grid min-h-[370px] min-w-0 items-center gap-8 py-14 sm:min-h-[420px] sm:py-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10 lg:py-16">
-          <div className="min-w-0 text-center lg:text-left">
-            <p className="mb-5 inline-flex max-w-full items-center gap-3 rounded-full border border-[#BB9B49]/45 bg-white/5 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#E8D8B5] sm:text-xs">
-              <FaStar size={10} aria-hidden="true" />
+        <div className="ldr-container relative z-10 min-w-0 py-12 sm:py-14 lg:py-16">
+          <div className="ldr-animate-enter max-w-[600px] min-w-0">
+            <p className="mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-[#BB9B49]/50 bg-[#111827]/45 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[#E8D8B5] backdrop-blur-sm sm:text-xs">
+              <FaStar
+                size={10}
+                aria-hidden="true"
+                className="shrink-0 text-[#D6B967]"
+              />
               Luz de Rubí · Consultas
             </p>
             <h1
               id="consultas-heading"
-              className="font-Abhaya text-[clamp(3rem,7.5vw,5.75rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-[#F8F6F0]"
+              className="font-Abhaya text-[clamp(2.65rem,4.7vw,4rem)] font-medium leading-[1.02] tracking-[-0.03em] text-[#F8F6F0]"
             >
               Consultas
-              <span className="block italic text-[#D6B967]">espirituales</span>
+              <span className="mt-0.5 block italic text-[#E2BE66]">
+                espirituales
+              </span>
             </h1>
             <div
               aria-hidden="true"
-              className="mx-auto mt-6 h-px w-16 bg-[#BB9B49] lg:mx-0"
+              className="mt-5 h-px w-16 bg-gradient-to-r from-[#D6B967] to-transparent"
             />
-            <p className="mx-auto mt-6 max-w-[550px] text-[14px] leading-[1.85] text-white/80 sm:text-[15px] lg:mx-0">
-              Un espacio para explorar tus inquietudes, conocer cada experiencia
-              y encontrar una consulta que conecte contigo.
+            <p className="mt-5 max-w-[500px] text-[14px] leading-[1.85] text-[#F8F6F0]/85 sm:text-[15px]">
+              Un espacio de orientación y conexión interior. Explora nuestras
+              experiencias y encuentra la consulta que mejor acompañe tu camino.
             </p>
-          </div>
-
-          <div className="relative mx-auto hidden w-full max-w-[365px] items-center justify-center lg:flex">
-            <div
-              aria-hidden="true"
-              className="absolute inset-4 rounded-full bg-[#D6B967]/15 blur-[65px]"
-            />
-            <div className="relative w-full rotate-[4deg] overflow-hidden rounded-[28px] border border-[#BB9B49]/45 bg-[#142643] p-3 shadow-[0_26px_80px_rgba(0,0,0,0.35)] transition-transform duration-500 hover:rotate-0">
-              <img
-                src="/assets/images/card-rubi.png"
-                alt=""
-                className="h-[280px] w-full rounded-[20px] object-contain"
-                loading="eager"
-              />
-            </div>
           </div>
         </div>
       </section>
 
       {/* TRANSICIÓN EDITORIAL */}
       <section className="bg-[linear-gradient(180deg,#EDE5D8_0%,#F8F6F0_90%)] px-4 pb-10 pt-14 text-center sm:pb-12 sm:pt-16">
-        <div className="mx-auto max-w-[770px]">
+        <div className="ldr-animate-enter mx-auto max-w-[770px]">
           <span className="ldr-eyebrow">Nuestras experiencias</span>
           <h2 className="mt-4 font-Abhaya text-[clamp(2.25rem,5vw,3.75rem)] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111827]">
             Encuentra tu espacio
@@ -281,7 +285,8 @@ function Consultas() {
                       aria-pressed={selected}
                       aria-controls="consulta-detalle"
                       onClick={() => setSelectedSlug(service.slug)}
-                      className={`group flex h-full min-w-0 flex-col overflow-hidden rounded-[24px] border bg-white text-left shadow-[0_14px_40px_rgba(17,24,39,0.06)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(17,24,39,0.12)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#BB9B49] ${selected ? "border-[#BB9B49]" : "border-[#BB9B49]/25"}`}
+                      style={{ animationDelay: `${Math.min(index, 5) * 90}ms` }}
+                      className={`ldr-animate-enter group flex h-full min-w-0 flex-col overflow-hidden rounded-[24px] border bg-white text-left shadow-[0_14px_40px_rgba(17,24,39,0.06)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(17,24,39,0.12)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#BB9B49] ${selected ? "border-[#BB9B49]" : "border-[#BB9B49]/25"}`}
                     >
                       <div className="relative h-[176px] w-full overflow-hidden bg-[#192846] sm:h-[195px]">
                         <img
@@ -293,7 +298,9 @@ function Consultas() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#101827]/55 via-transparent to-transparent" />
                         <span className="absolute left-5 top-4 rounded-full border border-white/25 bg-[#101827]/65 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-                          {service.available ? "Disponible" : "Próximamente"}
+                          {service.backendService
+                            ? "Reserva en línea"
+                            : "Consulta personalizada"}
                         </span>
                         <span className="absolute bottom-3 right-5 font-Abhaya text-3xl text-white/85">
                           {String(index + 1).padStart(2, "0")}
@@ -312,14 +319,14 @@ function Consultas() {
                         <div className="mt-6 flex items-center justify-between gap-3 border-t border-[#BB9B49]/20 pt-4 text-[12px]">
                           <span className="inline-flex items-center gap-2 text-[#7A6A48]">
                             <FaRegClock aria-hidden="true" />
-                            {service.available && service.duration
+                            {service.duration
                               ? `${service.duration} min`
-                              : "Duración por definir"}
+                              : "A convenir"}
                           </span>
                           <span className="font-semibold text-[#927337]">
-                            {service.available
+                            {service.backendService
                               ? formatPrice(service.price)
-                              : "Por definir"}
+                              : `US $${service.examplePrice}*`}
                           </span>
                         </div>
                         <span className="mt-4 inline-flex items-center gap-2 text-[12px] font-semibold text-[#8B733D]">
@@ -336,11 +343,12 @@ function Consultas() {
                 })}
               </div>
 
-              {/* La selección muestra detalles; no reserva automáticamente. */}
+              {/* Ver detalles no realiza reservas ni inicia pagos. */}
               <div
                 id="consulta-detalle"
+                key={selectedService.slug}
                 aria-live="polite"
-                className="mt-8 grid min-w-0 items-center gap-6 rounded-[26px] border border-[#BB9B49]/25 bg-white px-6 py-7 shadow-[0_12px_40px_rgba(17,24,39,0.04)] sm:px-9 sm:py-9 lg:grid-cols-[minmax(0,1fr)_auto]"
+                className="ldr-animate-enter mt-8 grid min-w-0 items-center gap-6 rounded-[26px] border border-[#BB9B49]/25 bg-white px-6 py-7 shadow-[0_12px_40px_rgba(17,24,39,0.04)] sm:px-9 sm:py-9 lg:grid-cols-[minmax(0,1fr)_auto]"
               >
                 <div className="min-w-0">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#94783F]">
@@ -352,14 +360,13 @@ function Consultas() {
                   <p className="mt-3 max-w-[700px] text-[14px] leading-[1.8] text-[#6F7480]">
                     {selectedService.description}
                   </p>
-                  {!selectedService.available && (
-                    <p className="mt-3 text-[12px] font-medium text-[#94783F]">
-                      Estamos preparando esta experiencia. Todavía no está
-                      habilitada para reservas.
-                    </p>
-                  )}
+                  <p className="mt-3 text-[12px] font-medium text-[#94783F]">
+                    {selectedService.backendService
+                      ? "Reserva en línea: selecciona tu fecha y horario en Agenda."
+                      : `Precio ilustrativo: US $${selectedService.examplePrice}. Para conocer disponibilidad y condiciones, contáctanos directamente.`}
+                  </p>
                 </div>
-                {selectedService.available ? (
+                {selectedService.backendService ? (
                   <button
                     type="button"
                     onClick={handleAgendaClick}
@@ -368,11 +375,22 @@ function Consultas() {
                     Ir a Agenda <FaArrowRight size={12} aria-hidden="true" />
                   </button>
                 ) : (
-                  <span className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#BB9B49]/35 px-6 text-[13px] font-medium text-[#8B733D]">
-                    Próximamente
-                  </span>
+                  <a
+                    href={`https://wa.me/573209821747?text=${encodeURIComponent(`Hola, quisiera información sobre ${selectedService.name}.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ldr-button ldr-button--gold w-full shrink-0 lg:w-auto"
+                  >
+                    Consultar por WhatsApp{" "}
+                    <FaArrowRight size={12} aria-hidden="true" />
+                  </a>
                 )}
               </div>
+              <p className="mt-5 text-center text-[11px] leading-relaxed text-[#787B82]">
+                * Los valores de Amor y Relaciones y Prosperidad y Trabajo son
+                ejemplos de diseño; deben confirmarse antes de ofrecer una
+                reserva en línea.
+              </p>
             </>
           )}
         </div>
